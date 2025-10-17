@@ -1,11 +1,11 @@
 import { Router } from 'express'
-import { PrismaClient } from '@prisma/client'
+import { getPrismaClient } from '../services/database'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 
 const router = Router()
-const prisma = new PrismaClient()
+const prisma = getPrismaClient()
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({

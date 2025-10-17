@@ -1,13 +1,13 @@
 import express from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import { PrismaClient } from '@prisma/client'
 import { z } from 'zod'
 import { validateRequest } from '../middleware/validation'
 import { sendEmail } from '../services/email'
+import { getPrismaClient } from '../services/database'
 
 const router = express.Router()
-const prisma = new PrismaClient()
+const prisma = getPrismaClient()
 
 // Validation schemas
 const registerSchema = z.object({

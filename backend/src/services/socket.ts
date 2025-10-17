@@ -1,8 +1,8 @@
 import { Server as SocketIOServer, Socket } from 'socket.io'
 import jwt from 'jsonwebtoken'
-import { PrismaClient } from '@prisma/client'
+import { getPrismaClient } from '../services/database'
 
-const prisma = new PrismaClient()
+const prisma = getPrismaClient()
 
 // Types
 interface AuthenticatedSocket extends Socket {

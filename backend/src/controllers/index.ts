@@ -1,10 +1,10 @@
 // Base controller class for common functionality
 
 import { Request, Response, NextFunction } from 'express'
-import { PrismaClient } from '@prisma/client'
+import { getPrismaClient } from '../services/database'
 import { AppError, asyncHandler } from '../utils'
 
-const prisma = new PrismaClient()
+const prisma = getPrismaClient()
 
 export abstract class BaseController {
   protected prisma = prisma

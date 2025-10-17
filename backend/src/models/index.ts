@@ -1,8 +1,8 @@
 // Database models and types for the backend
 
-import { PrismaClient } from '@prisma/client'
+import { getPrismaClient } from '../services/database'
 
-const prisma = new PrismaClient()
+const prisma = getPrismaClient()
 
 // Extended Prisma client with custom methods
 export class DatabaseService {

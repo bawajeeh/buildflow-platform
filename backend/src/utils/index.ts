@@ -1,9 +1,9 @@
 // Utility functions for the backend
 
 import crypto from 'crypto'
-import { PrismaClient } from '@prisma/client'
+import { getPrismaClient } from '../services/database'
 
-const prisma = new PrismaClient()
+const prisma = getPrismaClient()
 
 // Generate random string
 export const generateRandomString = (length: number = 32): string => {

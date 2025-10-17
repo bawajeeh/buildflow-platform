@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
-import { PrismaClient } from '@prisma/client'
+import { getPrismaClient } from '../services/database'
 
-const prisma = new PrismaClient()
+const prisma = getPrismaClient()
 
 // Extend Request interface to include user
 declare global {

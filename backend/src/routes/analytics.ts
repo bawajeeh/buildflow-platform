@@ -1,8 +1,8 @@
 import { Router } from 'express'
-import { PrismaClient } from '@prisma/client'
+import { getPrismaClient } from '../services/database'
 
 const router = Router()
-const prisma = new PrismaClient()
+const prisma = getPrismaClient()
 
 // Get analytics for a website
 router.get('/website/:websiteId', async (req, res) => {

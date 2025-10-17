@@ -1,8 +1,8 @@
 import { Router } from 'express'
-import { PrismaClient } from '@prisma/client'
+import { getPrismaClient } from '../services/database'
 
 const router = Router()
-const prisma = new PrismaClient()
+const prisma = getPrismaClient()
 
 // Get all bookings
 router.get('/', async (req, res) => {
