@@ -1,0 +1,445 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      String   @default("USER") // USER, ADMIN, SUPER_ADMIN
+  avatar    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  websites  Website[]
+  orders    Order[]
+  bookings  Booking[]
+  subscription Subscription?
+
+  @@map("users")
+}
+
+// Subscription Management
+model Subscription {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                String   @default("FREE") // FREE, BASIC, PRO, ENTERPRISE
+  status              String   @default("ACTIVE") // ACTIVE, CANCELED, PAST_DUE, UNPAID
+  currentPeriodStart  DateTime
+  currentPeriodEnd    DateTime
+  cancelAtPeriodEnd   Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("subscriptions")
+}
+
+// Website Management
+model Website {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  subdomain String   @unique
+  domain    String?
+  status    String   @default("DRAFT") // DRAFT, PUBLISHED, SUSPENDED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  pages     Page[]
+  products  Product[]
+  orders    Order[]
+  services  Service[]
+  bookings  Booking[]
+  customers Customer[]
+  analytics Analytics[]
+  media     Media[]
+  settings  WebsiteSettings?
+
+  @@map("websites")
+}
+
+// Website Settings
+model WebsiteSettings {
+  id        String   @id @default(cuid())
+  websiteId String   @unique
+  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  
+  // SEO Settings
+  seoTitle       String?
+  seoDescription String?
+  seoKeywords    String?
+  ogImage        String?
+  
+  // Analytics
+  googleAnalyticsId    String?
+  facebookPixelId     String?
+  customTrackingCode  String?
+  
+  // Theme Settings
+  primaryColor    String @default("#3b82f6")
+  secondaryColor  String @default("#64748b")
+  fontFamily      String @default("Inter")
+  borderRadius    Int    @default(8)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("website_settings")
+}
+
+// Page Management
+model Page {
+  id        String   @id @default(cuid())
+  websiteId String
+  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String
+  isHome    Boolean  @default(false)
+  isPublished Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  elements Element[]
+
+  @@unique([websiteId, slug])
+  @@map("pages")
+}
+
+// Element Management
+model Element {
+  id         String   @id @default(cuid())
+  pageId     String
+  page       Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  type       String   // SECTION, CONTAINER, TEXT, IMAGE, BUTTON, etc.
+  name       String
+  props      String   @default("{}") // JSON as string for SQLite
+  styles     String   @default("{}") // JSON as string for SQLite
+  parentId   String?
+  parent     Element? @relation("ElementChildren", fields: [parentId], references: [id])
+  children   Element[] @relation("ElementChildren")
+  order      Int      @default(0)
+  isVisible  Boolean  @default(true)
+  responsive String   @default("{}") // JSON as string for SQLite
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("elements")
+}
+
+// Template Management
+model Template {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  category    String
+  preview     String
+  tags        String?  // Comma-separated tags
+  isPremium   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  pages TemplatePage[]
+
+  @@map("templates")
+}
+
+model TemplatePage {
+  id         String   @id @default(cuid())
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  name       String
+  slug       String
+  elements   String   @default("[]") // JSON as string for SQLite
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("template_pages")
+}
+
+// Product Management
+model Product {
+  id            String   @id @default(cuid())
+  websiteId     String
+  website       Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  name          String
+  description   String?
+  slug          String
+  sku           String
+  price         Float
+  comparePrice  Float?
+  costPrice     Float?
+  trackQuantity Boolean  @default(true)
+  quantity      Int      @default(0)
+  allowBackorder Boolean  @default(false)
+  weight        Float?
+  length        Float?
+  width         Float?
+  height        Float?
+  seoTitle      String?
+  seoDescription String?
+  seoKeywords   String?  // Comma-separated keywords
+  isPublished   Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  variants ProductVariant[]
+  images   ProductImage[]
+  categories ProductCategory[]
+  orderItems OrderItem[]
+
+  @@unique([websiteId, slug])
+  @@map("products")
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  sku       String
+  price     Float
+  comparePrice Float?
+  quantity  Int      @default(0)
+  attributes String  @default("{}") // JSON as string for SQLite
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("product_variants")
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@map("product_images")
+}
+
+model ProductCategory {
+  id        String   @id @default(cuid())
+  websiteId String
+  name      String
+  slug      String
+  description String?
+  parentId  String?
+  parent    ProductCategory? @relation("CategoryChildren", fields: [parentId], references: [id])
+  children  ProductCategory[] @relation("CategoryChildren")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  products Product[]
+
+  @@unique([websiteId, slug])
+  @@map("product_categories")
+}
+
+// Order Management
+model Order {
+  id              String   @id @default(cuid())
+  websiteId       String
+  website         Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id])
+  customerId      String?
+  customer        Customer? @relation(fields: [customerId], references: [id])
+  orderNumber     String   @unique
+  status          String   @default("PENDING") // PENDING, CONFIRMED, PROCESSING, etc.
+  subtotal        Float
+  tax             Float
+  shipping        Float
+  discount        Float
+  total           Float
+  currency        String   @default("USD")
+  shippingAddress String   // JSON as string for SQLite
+  billingAddress  String   // JSON as string for SQLite
+  paymentStatus   String   @default("PENDING") // PENDING, PAID, FAILED, etc.
+  paymentMethod   String?
+  paymentId       String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  items OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  variantId String?
+  quantity  Int
+  price     Float
+  total     Float
+  createdAt DateTime @default(now())
+
+  @@map("order_items")
+}
+
+// Service Management
+model Service {
+  id              String   @id @default(cuid())
+  websiteId       String
+  website         Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  name            String
+  description     String?
+  type            String   @default("APPOINTMENT") // APPOINTMENT, CLASS, COURSE, MEMBERSHIP
+  duration        Int      // in minutes
+  price           Float
+  capacity        Int      @default(1)
+  advanceBookingDays Int   @default(30)
+  cancellationHours Int    @default(24)
+  bufferTime      Int      @default(0)
+  allowRescheduling Boolean @default(true)
+  requireDeposit  Boolean  @default(false)
+  depositAmount   Float?
+  availability    String   @default("{}") // JSON as string for SQLite
+  isPublished     Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  staff    ServiceStaff[]
+  bookings Booking[]
+
+  @@map("services")
+}
+
+model ServiceStaff {
+  id          String   @id @default(cuid())
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  name        String
+  email       String
+  phone       String?
+  bio         String?
+  specialties String?  // Comma-separated specialties
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  bookings Booking[]
+
+  @@map("service_staff")
+}
+
+// Booking Management
+model Booking {
+  id          String   @id @default(cuid())
+  websiteId   String
+  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  staffId     String
+  staff       ServiceStaff @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  customerId  String?
+  customer    Customer? @relation(fields: [customerId], references: [id])
+  startTime   DateTime
+  endTime     DateTime
+  status      String   @default("CONFIRMED") // CONFIRMED, PENDING, CANCELED, etc.
+  notes       String?
+  totalPrice  Float
+  depositPaid Float
+  paymentStatus String @default("PENDING") // PENDING, PAID, FAILED, etc.
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("bookings")
+}
+
+// Customer Management
+model Customer {
+  id            String   @id @default(cuid())
+  websiteId     String
+  website       Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  email         String
+  firstName     String?
+  lastName      String?
+  phone         String?
+  address       String?  // JSON as string for SQLite
+  tags          String?  // Comma-separated tags
+  totalSpent    Float    @default(0)
+  totalOrders   Int      @default(0)
+  lastOrderDate DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  bookings Booking[]
+  orders   Order[]
+
+  @@unique([websiteId, email])
+  @@map("customers")
+}
+
+// Analytics
+model Analytics {
+  id        String   @id @default(cuid())
+  websiteId String
+  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  date      DateTime
+  visitors  Int      @default(0)
+  pageViews Int      @default(0)
+  sessions  Int      @default(0)
+  bounceRate Float   @default(0)
+  avgSessionDuration Int @default(0)
+  conversions Int    @default(0)
+  revenue   Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([websiteId, date])
+  @@map("analytics")
+}
+
+// Media Management
+model Media {
+  id          String   @id @default(cuid())
+  websiteId   String
+  website     Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  filename    String
+  originalName String
+  mimeType    String
+  size        Int
+  path        String
+  url         String
+  type        String   @default("image") // image, video, document
+  alt         String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("media")
+}
