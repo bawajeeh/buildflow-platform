@@ -3,7 +3,6 @@
 import crypto from 'crypto'
 import { getPrismaClient } from '../services/database'
 
-const prisma = getPrismaClient()
 
 // Generate random string
 export const generateRandomString = (length: number = 32): string => {
@@ -146,7 +145,7 @@ export const findOrCreate = async <T>(
 export const withTransaction = async <T>(
   callback: (tx: any) => Promise<T>
 ): Promise<T> => {
-  return prisma.$transaction(callback)
+  return getPrismaClient().$transaction(callback)
 }
 
 // Error handling

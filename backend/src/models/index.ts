@@ -3,7 +3,6 @@
 import { PrismaClient } from '@prisma/client'
 import { getPrismaClient } from '../services/database'
 
-const prisma = getPrismaClient()
 
 // Extended Prisma client with custom methods
 export class DatabaseService {
@@ -27,7 +26,7 @@ export class DatabaseService {
 
   // User methods
   async findUserByEmail(email: string) {
-    return this.prisma.user.findUnique({
+    return this.getPrismaClient().user.findUnique({
       where: { email },
       include: {
         subscription: true,
@@ -36,7 +35,7 @@ export class DatabaseService {
   }
 
   async findUserById(id: string) {
-    return this.prisma.user.findUnique({
+    return this.getPrismaClient().user.findUnique({
       where: { id },
       include: {
         subscription: true,
@@ -50,7 +49,7 @@ export class DatabaseService {
     email: string
     password: string
   }) {
-    return this.prisma.user.create({
+    return this.getPrismaClient().user.create({
       data: userData,
       select: {
         id: true,
@@ -63,7 +62,7 @@ export class DatabaseService {
   }
 
   async updateUser(id: string, userData: any) {
-    return this.prisma.user.update({
+    return this.getPrismaClient().user.update({
       where: { id },
       data: userData,
       select: {
@@ -79,7 +78,7 @@ export class DatabaseService {
 
   // Website methods
   async findWebsitesByUserId(userId: string) {
-    return this.prisma.website.findMany({
+    return this.getPrismaClient().website.findMany({
       where: { userId },
       include: {
         pages: {
@@ -103,7 +102,7 @@ export class DatabaseService {
   }
 
   async findWebsiteById(id: string, userId: string) {
-    return this.prisma.website.findFirst({
+    return this.getPrismaClient().website.findFirst({
       where: {
         id,
         userId,
@@ -122,13 +121,13 @@ export class DatabaseService {
     subdomain: string
     userId: string
   }) {
-    return this.prisma.website.create({
+    return this.getPrismaClient().website.create({
       data: websiteData,
     })
   }
 
   async updateWebsite(id: string, userId: string, updateData: any) {
-    return this.prisma.website.update({
+    return this.getPrismaClient().website.update({
       where: {
         id,
         userId,
@@ -138,7 +137,7 @@ export class DatabaseService {
   }
 
   async deleteWebsite(id: string, userId: string) {
-    return this.prisma.website.delete({
+    return this.getPrismaClient().website.delete({
       where: {
         id,
         userId,
@@ -148,7 +147,7 @@ export class DatabaseService {
 
   // Page methods
   async findPagesByWebsiteId(websiteId: string, userId: string) {
-    return this.prisma.page.findMany({
+    return this.getPrismaClient().page.findMany({
       where: {
         websiteId,
         website: {
@@ -174,7 +173,7 @@ export class DatabaseService {
   }
 
   async findPageById(pageId: string, websiteId: string, userId: string) {
-    return this.prisma.page.findFirst({
+    return this.getPrismaClient().page.findFirst({
       where: {
         id: pageId,
         websiteId,
@@ -195,13 +194,13 @@ export class DatabaseService {
     slug: string
     websiteId: string
   }) {
-    return this.prisma.page.create({
+    return this.getPrismaClient().page.create({
       data: pageData,
     })
   }
 
   async updatePage(pageId: string, websiteId: string, userId: string, updateData: any) {
-    return this.prisma.page.update({
+    return this.getPrismaClient().page.update({
       where: {
         id: pageId,
         websiteId,
@@ -214,7 +213,7 @@ export class DatabaseService {
   }
 
   async deletePage(pageId: string, websiteId: string, userId: string) {
-    return this.prisma.page.delete({
+    return this.getPrismaClient().page.delete({
       where: {
         id: pageId,
         websiteId,
@@ -227,7 +226,7 @@ export class DatabaseService {
 
   // Element methods
   async findElementsByPageId(pageId: string, userId: string) {
-    return this.prisma.element.findMany({
+    return this.getPrismaClient().element.findMany({
       where: {
         pageId,
         page: {
@@ -241,7 +240,7 @@ export class DatabaseService {
   }
 
   async findElementById(elementId: string, userId: string) {
-    return this.prisma.element.findFirst({
+    return this.getPrismaClient().element.findFirst({
       where: {
         id: elementId,
         page: {
@@ -261,7 +260,7 @@ export class DatabaseService {
     properties?: any
     pageId: string
   }) {
-    return this.prisma.element.create({
+    return this.getPrismaClient().element.create({
       data: {
         ...elementData,
         order: 0,
@@ -270,7 +269,7 @@ export class DatabaseService {
   }
 
   async updateElement(elementId: string, userId: string, updateData: any) {
-    return this.prisma.element.update({
+    return this.getPrismaClient().element.update({
       where: {
         id: elementId,
         page: {
@@ -284,7 +283,7 @@ export class DatabaseService {
   }
 
   async deleteElement(elementId: string, userId: string) {
-    return this.prisma.element.delete({
+    return this.getPrismaClient().element.delete({
       where: {
         id: elementId,
         page: {
@@ -298,7 +297,7 @@ export class DatabaseService {
 
   // Product methods
   async findProductsByWebsiteId(websiteId: string, userId: string) {
-    return this.prisma.product.findMany({
+    return this.getPrismaClient().product.findMany({
       where: {
         websiteId,
         website: {
@@ -326,14 +325,14 @@ export class DatabaseService {
     quantity: number
     websiteId: string
   }) {
-    return this.prisma.product.create({
+    return this.getPrismaClient().product.create({
       data: productData,
     })
   }
 
   // Service methods
   async findServicesByWebsiteId(websiteId: string, userId: string) {
-    return this.prisma.service.findMany({
+    return this.getPrismaClient().service.findMany({
       where: {
         websiteId,
         website: {
@@ -363,14 +362,14 @@ export class DatabaseService {
     capacity: number
     websiteId: string
   }) {
-    return this.prisma.service.create({
+    return this.getPrismaClient().service.create({
       data: serviceData,
     })
   }
 
   // Booking methods
   async findBookingsByWebsiteId(websiteId: string, userId: string) {
-    return this.prisma.booking.findMany({
+    return this.getPrismaClient().booking.findMany({
       where: {
         service: {
           websiteId,
@@ -413,7 +412,7 @@ export class DatabaseService {
     paymentStatus?: string
     notes?: string
   }) {
-    return this.prisma.booking.create({
+    return this.getPrismaClient().booking.create({
       data: bookingData,
     })
   }
@@ -429,7 +428,7 @@ export class DatabaseService {
     avgSessionDuration?: number
     conversions?: number
   }) {
-    return this.prisma.analytics.create({
+    return this.getPrismaClient().analytics.create({
       data: eventData,
     })
   }
@@ -439,7 +438,7 @@ export class DatabaseService {
     const days = period === '7d' ? 7 : period === '30d' ? 30 : 1
     startDate.setDate(startDate.getDate() - days)
 
-    return this.prisma.analytics.findMany({
+    return this.getPrismaClient().analytics.findMany({
       where: {
         websiteId,
         website: {
@@ -455,7 +454,7 @@ export class DatabaseService {
 
   // Media methods
   async findMediaByUserId(userId: string) {
-    return this.prisma.media.findMany({
+    return this.getPrismaClient().media.findMany({
       where: {
         website: {
           userId,
@@ -477,13 +476,13 @@ export class DatabaseService {
     alt?: string
     description?: string
   }) {
-    return this.prisma.media.create({
+    return this.getPrismaClient().media.create({
       data: mediaData,
     })
   }
 
   async deleteMedia(mediaId: string, userId: string) {
-    return this.prisma.media.delete({
+    return this.getPrismaClient().media.delete({
       where: {
         id: mediaId,
         website: {
@@ -495,7 +494,7 @@ export class DatabaseService {
 
   // Template methods
   async findTemplates() {
-    return this.prisma.template.findMany({
+    return this.getPrismaClient().template.findMany({
       where: {
         isActive: true,
       },
@@ -504,7 +503,7 @@ export class DatabaseService {
   }
 
   async findTemplateById(templateId: string) {
-    return this.prisma.template.findUnique({
+    return this.getPrismaClient().template.findUnique({
       where: {
         id: templateId,
         isActive: true,
@@ -514,12 +513,12 @@ export class DatabaseService {
 
   // Transaction methods
   async withTransaction<T>(callback: (tx: any) => Promise<T>): Promise<T> {
-    return this.prisma.$transaction(callback)
+    return this.getPrismaClient().$transaction(callback)
   }
 
   // Cleanup methods
   async cleanup() {
-    await this.prisma.$disconnect()
+    await this.getPrismaClient().$disconnect()
   }
 }
 

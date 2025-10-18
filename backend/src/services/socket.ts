@@ -2,7 +2,6 @@ import { Server as SocketIOServer, Socket } from 'socket.io'
 import jwt from 'jsonwebtoken'
 import { getPrismaClient } from '../services/database'
 
-const prisma = getPrismaClient()
 
 // Types
 interface AuthenticatedSocket extends Socket {
@@ -43,7 +42,7 @@ export const initializeSocket = (io: SocketIOServer) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; email: string }
       
       // Get user from database
-      const user = await prisma.user.findUnique({
+      const user = await getPrismaClient().user.findUnique({
         where: { id: decoded.userId },
         select: {
           id: true,
@@ -242,7 +241,7 @@ const logElementUpdate = async (userId: string, elementId: string, updates: any)
     console.log(`Element update logged: User ${userId}, Element ${elementId}`)
     
     // You could store this in a database for analytics
-    // await prisma.elementUpdateLog.create({
+    // await getPrismaClient().elementUpdateLog.create({
     //   data: {
     //     userId,
     //     elementId,

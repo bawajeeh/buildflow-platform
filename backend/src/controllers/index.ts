@@ -4,7 +4,6 @@ import { Request, Response, NextFunction } from 'express'
 import { getPrismaClient } from '../services/database'
 import { AppError, asyncHandler } from '../utils'
 
-const prisma = getPrismaClient()
 
 export abstract class BaseController {
   protected prisma = prisma
@@ -140,7 +139,7 @@ export abstract class BaseController {
 // User Controller
 export class UserController extends BaseController {
   public getProfile = this.wrapAsync(async (req: Request, res: Response) => {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.getPrismaClient().user.findUnique({
       where: { id: req.user?.id },
       select: {
         id: true,
@@ -162,7 +161,7 @@ export class UserController extends BaseController {
   public updateProfile = this.wrapAsync(async (req: Request, res: Response) => {
     const { firstName, lastName, avatar } = req.body
 
-    const user = await this.prisma.user.update({
+    const user = await this.getPrismaClient().user.update({
       where: { id: req.user?.id },
       data: {
         firstName,
@@ -189,7 +188,7 @@ export class UserController extends BaseController {
 // Website Controller
 export class WebsiteController extends BaseController {
   public getWebsites = this.wrapAsync(async (req: Request, res: Response) => {
-    const websites = await this.prisma.website.findMany({
+    const websites = await this.getPrismaClient().website.findMany({
       where: { userId: req.user?.id },
       include: {
         pages: {
@@ -219,7 +218,7 @@ export class WebsiteController extends BaseController {
   public getWebsite = this.wrapAsync(async (req: Request, res: Response) => {
     const { id } = req.params
 
-    const website = await this.prisma.website.findFirst({
+    const website = await this.getPrismaClient().website.findFirst({
       where: {
         id,
         userId: req.user?.id,
@@ -244,7 +243,7 @@ export class WebsiteController extends BaseController {
   public createWebsite = this.wrapAsync(async (req: Request, res: Response) => {
     const { name, domain, subdomain } = req.body
 
-    const website = await this.prisma.website.create({
+    const website = await this.getPrismaClient().website.create({
       data: {
         name,
         domain,
@@ -263,7 +262,7 @@ export class WebsiteController extends BaseController {
     const { id } = req.params
     const updateData = req.body
 
-    const website = await this.prisma.website.update({
+    const website = await this.getPrismaClient().website.update({
       where: {
         id,
         userId: req.user?.id,
@@ -280,7 +279,7 @@ export class WebsiteController extends BaseController {
   public deleteWebsite = this.wrapAsync(async (req: Request, res: Response) => {
     const { id } = req.params
 
-    await this.prisma.website.delete({
+    await this.getPrismaClient().website.delete({
       where: {
         id,
         userId: req.user?.id,
@@ -296,7 +295,7 @@ export class WebsiteController extends BaseController {
   public publishWebsite = this.wrapAsync(async (req: Request, res: Response) => {
     const { id } = req.params
 
-    const website = await this.prisma.website.update({
+    const website = await this.getPrismaClient().website.update({
       where: {
         id,
         userId: req.user?.id,
@@ -318,7 +317,7 @@ export class PageController extends BaseController {
   public getPages = this.wrapAsync(async (req: Request, res: Response) => {
     const { websiteId } = req.params
 
-    const pages = await this.prisma.page.findMany({
+    const pages = await this.getPrismaClient().page.findMany({
       where: {
         websiteId,
         website: {
@@ -351,7 +350,7 @@ export class PageController extends BaseController {
   public getPage = this.wrapAsync(async (req: Request, res: Response) => {
     const { websiteId, pageId } = req.params
 
-    const page = await this.prisma.page.findFirst({
+    const page = await this.getPrismaClient().page.findFirst({
       where: {
         id: pageId,
         websiteId,
@@ -380,7 +379,7 @@ export class PageController extends BaseController {
     const { websiteId } = req.params
     const { name, slug } = req.body
 
-    const page = await this.prisma.page.create({
+    const page = await this.getPrismaClient().page.create({
       data: {
         name,
         slug,
@@ -398,7 +397,7 @@ export class PageController extends BaseController {
     const { websiteId, pageId } = req.params
     const updateData = req.body
 
-    const page = await this.prisma.page.update({
+    const page = await this.getPrismaClient().page.update({
       where: {
         id: pageId,
         websiteId,
@@ -418,7 +417,7 @@ export class PageController extends BaseController {
   public deletePage = this.wrapAsync(async (req: Request, res: Response) => {
     const { websiteId, pageId } = req.params
 
-    await this.prisma.page.delete({
+    await this.getPrismaClient().page.delete({
       where: {
         id: pageId,
         websiteId,
@@ -440,7 +439,7 @@ export class ElementController extends BaseController {
   public getElements = this.wrapAsync(async (req: Request, res: Response) => {
     const { pageId } = req.params
 
-    const elements = await this.prisma.element.findMany({
+    const elements = await this.getPrismaClient().element.findMany({
       where: {
         pageId,
         page: {
@@ -462,7 +461,7 @@ export class ElementController extends BaseController {
     const { pageId } = req.params
     const elementData = req.body
 
-    const element = await this.prisma.element.create({
+    const element = await this.getPrismaClient().element.create({
       data: {
         ...elementData,
         pageId,
@@ -480,7 +479,7 @@ export class ElementController extends BaseController {
     const { elementId } = req.params
     const updateData = req.body
 
-    const element = await this.prisma.element.update({
+    const element = await this.getPrismaClient().element.update({
       where: {
         id: elementId,
         page: {
@@ -501,7 +500,7 @@ export class ElementController extends BaseController {
   public deleteElement = this.wrapAsync(async (req: Request, res: Response) => {
     const { elementId } = req.params
 
-    await this.prisma.element.delete({
+    await this.getPrismaClient().element.delete({
       where: {
         id: elementId,
         page: {
