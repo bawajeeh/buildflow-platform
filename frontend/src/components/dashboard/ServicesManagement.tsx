@@ -103,6 +103,9 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
         staffId: '1',
         staffName: 'John Smith',
         staffEmail: 'john@example.com',
+        name: 'John Smith',
+        email: 'john@example.com',
+        specialties: ['Personal Training', 'Nutrition'],
         isPrimary: true,
       },
     ])
@@ -331,7 +334,7 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
                   </div>
                   <div>
                     <h3 className="font-medium text-foreground">
-                      {new Date(booking.startTime).toLocaleDateString()} at {new Date(booking.startTime).toLocaleTimeString()}
+                      {booking.date.toLocaleDateString()} at {booking.time}
                     </h3>
                     <p className="text-sm text-muted-foreground">
                       Customer ID: {booking.customerId}
@@ -341,7 +344,7 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
                         {booking.status}
                       </Badge>
                       <span className="text-xs text-muted-foreground">
-                        ${booking.totalPrice}
+                        ${booking.totalAmount}
                       </span>
                     </div>
                   </div>
@@ -454,7 +457,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSave, onCancel }) 
     advanceBookingDays: service?.advanceBookingDays || 30,
     cancellationHours: service?.cancellationHours || 24,
     bufferTime: service?.bufferTime || 0,
-    allowRescheduling: service?.allowRescheduling || true,
+    allowRescheduling: service?.allowRescheduling || false,
     requireDeposit: service?.requireDeposit || false,
     depositAmount: service?.depositAmount || 0,
     isPublished: service?.isPublished || false,
@@ -530,7 +533,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSave, onCancel }) 
           <input
             type="checkbox"
             checked={formData.allowRescheduling}
-            onChange={(e) => setFormData({ ...formData, allowRescheduling: e.target.checked as boolean })}
+            onChange={(e) => setFormData({ ...formData, allowRescheduling: e.target.checked })}
           />
           Allow Rescheduling
         </label>

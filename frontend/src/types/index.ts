@@ -709,6 +709,7 @@ export enum ServiceType {
 
 export interface Booking {
   id: string;
+  websiteId?: string;
   serviceId: string;
   customerId: string;
   customerName: string;
@@ -716,11 +717,15 @@ export interface Booking {
   customerPhone?: string;
   date: Date;
   time: string;
+  startTime?: Date;
+  endTime?: Date;
   duration: number;
   status: BookingStatus;
   paymentStatus: PaymentStatus;
   totalAmount: number;
+  totalPrice?: number;
   depositAmount: number;
+  depositPaid?: number;
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
