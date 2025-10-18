@@ -111,6 +111,7 @@ const PORT = process.env.PORT || 5001
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`)
   console.log(`📊 Health check: http://localhost:${PORT}/health`)
+  console.log(`🔧 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`)
 })
 
 export { app, server, io }
