@@ -222,16 +222,31 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
     switch (action) {
       case 'suspend':
         console.log('Suspend website:', websiteId)
+        // TODO: Implement suspend website API call
         break
       case 'delete':
         console.log('Delete website:', websiteId)
+        // TODO: Implement delete website API call
         break
       case 'view':
         console.log('View website:', websiteId)
+        // TODO: Navigate to website view
         break
       default:
         break
     }
+  }
+
+  const handleExportData = () => {
+    console.log('Exporting admin data...')
+    // TODO: Implement data export functionality
+    alert('Data export functionality will be implemented')
+  }
+
+  const handleSettings = () => {
+    console.log('Opening admin settings...')
+    // TODO: Navigate to admin settings page
+    alert('Admin settings will be implemented')
   }
 
   return (
@@ -244,15 +259,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = () => {
             <p className="text-muted-foreground">Platform management and monitoring</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => handleExportData()}>
               <Download className="w-4 h-4 mr-2" />
               Export Data
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={() => fetchAdminData()}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
-            <Button>
+            <Button onClick={() => handleSettings()}>
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </Button>

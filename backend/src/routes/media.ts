@@ -5,7 +5,6 @@ import path from 'path'
 import fs from 'fs'
 
 const router = Router()
-const prisma = getPrismaClient()
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -51,14 +50,14 @@ router.get('/', async (req, res) => {
     
     const skip = (Number(page) - 1) * Number(limit)
     
-    const media = await prisma.media.findMany({
+    const media = await getPrismaClient().media.findMany({
       where,
       skip,
       take: Number(limit),
       orderBy: { createdAt: 'desc' },
     })
     
-    const total = await prisma.media.count({ where })
+    const total = await getPrismaClient().media.count({ where })
     
     res.json({
       media,
@@ -83,7 +82,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     
     const { websiteId, type = 'image', alt, description } = req.body
     
-    const media = await prisma.media.create({
+    const media = await getPrismaClient().media.create({
       data: {
         websiteId,
         filename: req.file.filename,
@@ -115,7 +114,7 @@ router.post('/upload-multiple', upload.array('files', 10), async (req, res) => {
     
     const mediaFiles = await Promise.all(
       req.files.map(async (file) => {
-        return await prisma.media.create({
+        return await getPrismaClient().media.create({
           data: {
             websiteId,
             filename: file.filename,
@@ -139,7 +138,7 @@ router.post('/upload-multiple', upload.array('files', 10), async (req, res) => {
 // Get media by ID
 router.get('/:id', async (req, res) => {
   try {
-    const media = await prisma.media.findUnique({
+    const media = await getPrismaClient().media.findUnique({
       where: { id: req.params.id },
     })
     
@@ -158,7 +157,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { alt, description, type } = req.body
     
-    const media = await prisma.media.update({
+    const media = await getPrismaClient().media.update({
       where: { id: req.params.id },
       data: {
         alt,
@@ -176,7 +175,7 @@ router.put('/:id', async (req, res) => {
 // Delete media
 router.delete('/:id', async (req, res) => {
   try {
-    const media = await prisma.media.findUnique({
+    const media = await getPrismaClient().media.findUnique({
       where: { id: req.params.id },
     })
     
@@ -190,7 +189,7 @@ router.delete('/:id', async (req, res) => {
     }
     
     // Delete from database
-    await prisma.media.delete({
+    await getPrismaClient().media.delete({
       where: { id: req.params.id },
     })
     

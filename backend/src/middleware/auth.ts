@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { getPrismaClient } from '../services/database'
 
-const prisma = getPrismaClient()
 
 // Extend Request interface to include user
 declare global {
@@ -33,7 +32,7 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; email: string }
     
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { id: decoded.userId },
       select: {
         id: true,

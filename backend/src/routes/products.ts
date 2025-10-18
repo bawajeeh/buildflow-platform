@@ -2,12 +2,11 @@ import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
 
 const router = Router()
-const prisma = getPrismaClient()
 
 // Get all products
 router.get('/', async (req, res) => {
   try {
-    const products = await prisma.product.findMany({
+    const products = await getPrismaClient().product.findMany({
       include: {
         images: true,
         variants: true,
@@ -28,7 +27,7 @@ router.get('/', async (req, res) => {
 // Get product by ID
 router.get('/:id', async (req, res) => {
   try {
-    const product = await prisma.product.findUnique({
+    const product = await getPrismaClient().product.findUnique({
       where: { id: req.params.id },
       include: {
         images: true,
@@ -50,7 +49,7 @@ router.post('/', async (req, res) => {
   try {
     const { websiteId, name, description, slug, sku, price, comparePrice, quantity, isPublished } = req.body
     
-    const product = await prisma.product.create({
+    const product = await getPrismaClient().product.create({
       data: {
         websiteId,
         name,
@@ -75,7 +74,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { name, description, price, comparePrice, quantity, isPublished } = req.body
     
-    const product = await prisma.product.update({
+    const product = await getPrismaClient().product.update({
       where: { id: req.params.id },
       data: {
         name,
@@ -96,7 +95,7 @@ router.put('/:id', async (req, res) => {
 // Delete product
 router.delete('/:id', async (req, res) => {
   try {
-    await prisma.product.delete({
+    await getPrismaClient().product.delete({
       where: { id: req.params.id },
     })
     

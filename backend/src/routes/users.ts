@@ -2,12 +2,11 @@ import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
 
 const router = Router()
-const prisma = getPrismaClient()
 
 // Get all users
 router.get('/', async (req, res) => {
   try {
-    const users = await prisma.user.findMany({
+    const users = await getPrismaClient().user.findMany({
       select: {
         id: true,
         email: true,
@@ -26,7 +25,7 @@ router.get('/', async (req, res) => {
 // Get user by ID
 router.get('/:id', async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { id: req.params.id },
       select: {
         id: true,

@@ -2,7 +2,6 @@ import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
 
 const router = Router()
-const prisma = getPrismaClient()
 
 // Get analytics for a website
 router.get('/website/:websiteId', async (req, res) => {
@@ -13,7 +12,7 @@ router.get('/website/:websiteId', async (req, res) => {
     const start = startDate ? new Date(startDate as string) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
     const end = endDate ? new Date(endDate as string) : new Date()
     
-    const analytics = await prisma.analytics.findMany({
+    const analytics = await getPrismaClient().analytics.findMany({
       where: {
         websiteId,
         date: {
@@ -64,7 +63,7 @@ router.post('/', async (req, res) => {
       revenue 
     } = req.body
     
-    const analytics = await prisma.analytics.upsert({
+    const analytics = await getPrismaClient().analytics.upsert({
       where: {
         websiteId_date: {
           websiteId,
@@ -108,7 +107,7 @@ router.get('/realtime/:websiteId', async (req, res) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
-    const todayAnalytics = await prisma.analytics.findUnique({
+    const todayAnalytics = await getPrismaClient().analytics.findUnique({
       where: {
         websiteId_date: {
           websiteId,
@@ -160,7 +159,7 @@ router.get('/summary/:websiteId', async (req, res) => {
     
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
     
-    const analytics = await prisma.analytics.findMany({
+    const analytics = await getPrismaClient().analytics.findMany({
       where: {
         websiteId,
         date: {

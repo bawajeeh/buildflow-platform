@@ -51,51 +51,25 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
   }, [website])
 
   const fetchProducts = async () => {
-    // Mock data for now
-    setProducts([
-      {
-        id: '1',
-        websiteId: website?.id || '',
-        name: 'Premium T-Shirt',
-        description: 'High-quality cotton t-shirt',
-        slug: 'premium-t-shirt',
-        sku: 'TSH-001',
-        price: 29.99,
-        comparePrice: 39.99,
-        trackQuantity: true,
-        quantity: 100,
-        allowBackorder: false,
-        images: [],
-        variants: [],
-        categories: [],
-        tags: ['clothing', 't-shirt'],
-        seo: { title: '', description: '', keywords: [] },
-        isPublished: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: '2',
-        websiteId: website?.id || '',
-        name: 'Designer Jeans',
-        description: 'Comfortable designer jeans',
-        slug: 'designer-jeans',
-        sku: 'JEA-002',
-        price: 89.99,
-        comparePrice: 119.99,
-        trackQuantity: true,
-        quantity: 50,
-        allowBackorder: false,
-        images: [],
-        variants: [],
-        categories: [],
-        tags: ['clothing', 'jeans'],
-        seo: { title: '', description: '', keywords: [] },
-        isPublished: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ])
+    try {
+      const { token } = useAuthStore.getState()
+      const response = await fetch(`/api/websites/${website?.id}/products`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch products')
+      }
+
+      const data = await response.json()
+      setProducts(data.data || [])
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      // Fallback to empty array on error
+      setProducts([])
+    }
   }
 
   const fetchOrders = async () => {
@@ -344,9 +318,29 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
         title="Create New Product"
       >
         <ProductForm
-          onSave={(product) => {
-            console.log('Save product:', product)
-            setIsCreateModalOpen(false)
+          onSave={async (product) => {
+            try {
+              const { token } = useAuthStore.getState()
+              const response = await fetch(`/api/websites/${website?.id}/products`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(product),
+              })
+
+              if (!response.ok) {
+                throw new Error('Failed to create product')
+              }
+
+              const data = await response.json()
+              setProducts(prev => [...prev, data.data])
+              setIsCreateModalOpen(false)
+            } catch (error) {
+              console.error('Error creating product:', error)
+              // TODO: Show error toast
+            }
           }}
           onCancel={() => setIsCreateModalOpen(false)}
         />

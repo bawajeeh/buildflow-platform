@@ -2,12 +2,11 @@ import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
 
 const router = Router()
-const prisma = getPrismaClient()
 
 // Get all websites
 router.get('/', async (req, res) => {
   try {
-    const websites = await prisma.website.findMany({
+    const websites = await getPrismaClient().website.findMany({
       include: {
         user: {
           select: {
@@ -36,7 +35,7 @@ router.get('/', async (req, res) => {
 // Get website by ID
 router.get('/:id', async (req, res) => {
   try {
-    const website = await prisma.website.findUnique({
+    const website = await getPrismaClient().website.findUnique({
       where: { id: req.params.id },
       include: {
         user: {
@@ -73,7 +72,7 @@ router.post('/', async (req, res) => {
       return res.status(401).json({ error: 'User not authenticated' })
     }
     
-    const website = await prisma.website.create({
+    const website = await getPrismaClient().website.create({
       data: {
         userId,
         name,
@@ -98,7 +97,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { name, subdomain, status, domain } = req.body
     
-    const website = await prisma.website.update({
+    const website = await getPrismaClient().website.update({
       where: { id: req.params.id },
       data: {
         name,
@@ -117,7 +116,7 @@ router.put('/:id', async (req, res) => {
 // Delete website
 router.delete('/:id', async (req, res) => {
   try {
-    await prisma.website.delete({
+    await getPrismaClient().website.delete({
       where: { id: req.params.id },
     })
     

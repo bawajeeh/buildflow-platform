@@ -7,7 +7,6 @@ import { sendEmail } from '../services/email'
 import { getPrismaClient } from '../services/database'
 
 const router = express.Router()
-const prisma = getPrismaClient()
 
 // Validation schemas
 const registerSchema = z.object({
@@ -94,7 +93,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
     const { firstName, lastName, email, password } = req.body
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await getPrismaClient().user.findUnique({
       where: { email },
     })
 
@@ -109,7 +108,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 12)
 
     // Create user
-    const user = await prisma.user.create({
+    const user = await getPrismaClient().user.create({
       data: {
         firstName,
         lastName,
@@ -120,7 +119,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
     })
 
     // Create default subscription
-    await prisma.subscription.create({
+    await getPrismaClient().subscription.create({
       data: {
         userId: user.id,
         plan: 'FREE',
@@ -162,7 +161,7 @@ router.post('/login', validateRequest(loginSchema), async (req, res) => {
     const { email, password } = req.body
 
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { email },
       include: {
         subscription: true,
@@ -217,7 +216,7 @@ router.post('/forgot-password', validateRequest(forgotPasswordSchema), async (re
     const { email } = req.body
 
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { email },
     })
 
@@ -277,7 +276,7 @@ router.post('/reset-password', validateRequest(resetPasswordSchema), async (req,
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string }
     
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { id: decoded.userId },
     })
 
@@ -292,7 +291,7 @@ router.post('/reset-password', validateRequest(resetPasswordSchema), async (req,
     const hashedPassword = await bcrypt.hash(password, 12)
 
     // Update password
-    await prisma.user.update({
+    await getPrismaClient().user.update({
       where: { id: user.id },
       data: { password: hashedPassword },
     })
@@ -326,7 +325,7 @@ router.post('/refresh', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; email: string }
     
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { id: decoded.userId },
       include: {
         subscription: true,
@@ -382,7 +381,7 @@ router.get('/profile', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string }
     
     // Find user
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { id: decoded.userId },
       include: {
         subscription: true,
@@ -430,7 +429,7 @@ router.put('/profile', async (req, res) => {
     const { firstName, lastName, avatar } = req.body
 
     // Update user
-    const user = await prisma.user.update({
+    const user = await getPrismaClient().user.update({
       where: { id: decoded.userId },
       data: {
         firstName,

@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Element, ElementStyles } from '@/types'
 import { cn } from '@/utils'
+import { useAuthStore } from '@/store'
 
 // Element Components
 import {
@@ -230,9 +231,37 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
         <div className="absolute -top-8 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             className="w-6 h-6 bg-primary text-primary-foreground rounded text-xs hover:bg-primary/90"
-            onClick={(e) => {
+            onClick={async (e) => {
               e.stopPropagation()
-              // Handle duplicate
+              try {
+                const { token } = useAuthStore.getState()
+                const response = await fetch(`/api/elements`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({
+                    pageId: element.pageId,
+                    type: element.type,
+                    name: `${element.name} (Copy)`,
+                    props: element.props,
+                    styles: element.styles,
+                    parentId: element.parentId,
+                    order: element.order + 1,
+                  }),
+                })
+
+                if (!response.ok) {
+                  throw new Error('Failed to duplicate element')
+                }
+
+                const data = await response.json()
+                // TODO: Refresh elements list
+                console.log('Element duplicated:', data)
+              } catch (error) {
+                console.error('Error duplicating element:', error)
+              }
             }}
             title="Duplicate"
           >
@@ -240,9 +269,26 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
           </button>
           <button
             className="w-6 h-6 bg-destructive text-destructive-foreground rounded text-xs hover:bg-destructive/90"
-            onClick={(e) => {
+            onClick={async (e) => {
               e.stopPropagation()
-              // Handle delete
+              try {
+                const { token } = useAuthStore.getState()
+                const response = await fetch(`/api/elements/${element.id}`, {
+                  method: 'DELETE',
+                  headers: {
+                    'Authorization': `Bearer ${token}`,
+                  },
+                })
+
+                if (!response.ok) {
+                  throw new Error('Failed to delete element')
+                }
+
+                // TODO: Remove element from UI
+                console.log('Element deleted:', element.id)
+              } catch (error) {
+                console.error('Error deleting element:', error)
+              }
             }}
             title="Delete"
           >

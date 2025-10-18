@@ -2,12 +2,11 @@ import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
 
 const router = Router()
-const prisma = getPrismaClient()
 
 // Get all customers
 router.get('/', async (req, res) => {
   try {
-    const customers = await prisma.customer.findMany({
+    const customers = await getPrismaClient().customer.findMany({
       include: {
         bookings: true,
         orders: true,
@@ -29,7 +28,7 @@ router.get('/', async (req, res) => {
 // Get customer by ID
 router.get('/:id', async (req, res) => {
   try {
-    const customer = await prisma.customer.findUnique({
+    const customer = await getPrismaClient().customer.findUnique({
       where: { id: req.params.id },
       include: {
         bookings: {
@@ -63,7 +62,7 @@ router.post('/', async (req, res) => {
   try {
     const { websiteId, email, firstName, lastName, phone, address, tags } = req.body
     
-    const customer = await prisma.customer.create({
+    const customer = await getPrismaClient().customer.create({
       data: {
         websiteId,
         email,
@@ -88,7 +87,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { firstName, lastName, phone, address, tags } = req.body
     
-    const customer = await prisma.customer.update({
+    const customer = await getPrismaClient().customer.update({
       where: { id: req.params.id },
       data: {
         firstName,
@@ -108,7 +107,7 @@ router.put('/:id', async (req, res) => {
 // Delete customer
 router.delete('/:id', async (req, res) => {
   try {
-    await prisma.customer.delete({
+    await getPrismaClient().customer.delete({
       where: { id: req.params.id },
     })
     
@@ -121,7 +120,7 @@ router.delete('/:id', async (req, res) => {
 // Get customer analytics
 router.get('/:id/analytics', async (req, res) => {
   try {
-    const customer = await prisma.customer.findUnique({
+    const customer = await getPrismaClient().customer.findUnique({
       where: { id: req.params.id },
       include: {
         bookings: {

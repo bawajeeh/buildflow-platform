@@ -2,12 +2,11 @@ import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
 
 const router = Router()
-const prisma = getPrismaClient()
 
 // Get all orders
 router.get('/', async (req, res) => {
   try {
-    const orders = await prisma.order.findMany({
+    const orders = await getPrismaClient().order.findMany({
       include: {
         user: {
           select: {
@@ -35,7 +34,7 @@ router.get('/', async (req, res) => {
 // Get order by ID
 router.get('/:id', async (req, res) => {
   try {
-    const order = await prisma.order.findUnique({
+    const order = await getPrismaClient().order.findUnique({
       where: { id: req.params.id },
       include: {
         user: {
@@ -68,7 +67,7 @@ router.post('/', async (req, res) => {
   try {
     const { websiteId, userId, customerId, orderNumber, subtotal, tax, shipping, discount, total, shippingAddress, billingAddress } = req.body
     
-    const order = await prisma.order.create({
+    const order = await getPrismaClient().order.create({
       data: {
         websiteId,
         userId,
@@ -97,7 +96,7 @@ router.put('/:id/status', async (req, res) => {
   try {
     const { status, paymentStatus } = req.body
     
-    const order = await prisma.order.update({
+    const order = await getPrismaClient().order.update({
       where: { id: req.params.id },
       data: {
         status,

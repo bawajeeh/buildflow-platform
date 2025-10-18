@@ -1,5 +1,6 @@
 // Database models and types for the backend
 
+import { PrismaClient } from '@prisma/client'
 import { getPrismaClient } from '../services/database'
 
 const prisma = getPrismaClient()

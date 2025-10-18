@@ -53,48 +53,24 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
   }, [website])
 
   const fetchServices = async () => {
-    // Mock data
-    setServices([
-      {
-        id: '1',
-        websiteId: website?.id || '',
-        name: 'Personal Training',
-        description: 'One-on-one personal training session',
-        type: 'APPOINTMENT',
-        duration: 60,
-        price: 80.00,
-        capacity: 1,
-        advanceBookingDays: 30,
-        cancellationHours: 24,
-        bufferTime: 15,
-        allowRescheduling: true,
-        requireDeposit: true,
-        depositAmount: 20.00,
-        availability: {},
-        isPublished: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: '2',
-        websiteId: website?.id || '',
-        name: 'Yoga Class',
-        description: 'Group yoga class for all levels',
-        type: 'CLASS',
-        duration: 45,
-        price: 25.00,
-        capacity: 20,
-        advanceBookingDays: 7,
-        cancellationHours: 2,
-        bufferTime: 10,
-        allowRescheduling: true,
-        requireDeposit: false,
-        availability: {},
-        isPublished: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ])
+    try {
+      const { token } = useAuthStore.getState()
+      const response = await fetch(`/api/websites/${website?.id}/services`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch services')
+      }
+
+      const data = await response.json()
+      setServices(data.data || [])
+    } catch (error) {
+      console.error('Error fetching services:', error)
+      setServices([])
+    }
   }
 
   const fetchBookings = async () => {
@@ -393,9 +369,28 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
         title="Create New Service"
       >
         <ServiceForm
-          onSave={(service) => {
-            console.log('Save service:', service)
-            setIsCreateModalOpen(false)
+          onSave={async (service) => {
+            try {
+              const { token } = useAuthStore.getState()
+              const response = await fetch(`/api/websites/${website?.id}/services`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(service),
+              })
+
+              if (!response.ok) {
+                throw new Error('Failed to create service')
+              }
+
+              const data = await response.json()
+              setServices(prev => [...prev, data.data])
+              setIsCreateModalOpen(false)
+            } catch (error) {
+              console.error('Error creating service:', error)
+            }
           }}
           onCancel={() => setIsCreateModalOpen(false)}
         />

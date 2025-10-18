@@ -2,12 +2,11 @@ import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
 
 const router = Router()
-const prisma = getPrismaClient()
 
 // Get all services
 router.get('/', async (req, res) => {
   try {
-    const services = await prisma.service.findMany({
+    const services = await getPrismaClient().service.findMany({
       include: {
         staff: true,
         bookings: true,
@@ -27,7 +26,7 @@ router.get('/', async (req, res) => {
 // Get service by ID
 router.get('/:id', async (req, res) => {
   try {
-    const service = await prisma.service.findUnique({
+    const service = await getPrismaClient().service.findUnique({
       where: { id: req.params.id },
       include: {
         staff: true,
@@ -53,7 +52,7 @@ router.post('/', async (req, res) => {
   try {
     const { websiteId, name, description, type, duration, price, capacity, isPublished } = req.body
     
-    const service = await prisma.service.create({
+    const service = await getPrismaClient().service.create({
       data: {
         websiteId,
         name,
@@ -78,7 +77,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { name, description, duration, price, capacity, isPublished } = req.body
     
-    const service = await prisma.service.update({
+    const service = await getPrismaClient().service.update({
       where: { id: req.params.id },
       data: {
         name,
@@ -99,7 +98,7 @@ router.put('/:id', async (req, res) => {
 // Delete service
 router.delete('/:id', async (req, res) => {
   try {
-    await prisma.service.delete({
+    await getPrismaClient().service.delete({
       where: { id: req.params.id },
     })
     

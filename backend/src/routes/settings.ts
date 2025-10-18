@@ -2,12 +2,11 @@ import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
 
 const router = Router()
-const prisma = getPrismaClient()
 
 // Get website settings
 router.get('/website/:websiteId', async (req, res) => {
   try {
-    const settings = await prisma.websiteSettings.findUnique({
+    const settings = await getPrismaClient().websiteSettings.findUnique({
       where: { websiteId: req.params.websiteId },
     })
     
@@ -38,7 +37,7 @@ router.put('/website/:websiteId', async (req, res) => {
       borderRadius
     } = req.body
     
-    const settings = await prisma.websiteSettings.upsert({
+    const settings = await getPrismaClient().websiteSettings.upsert({
       where: { websiteId: req.params.websiteId },
       update: {
         seoTitle,
@@ -78,7 +77,7 @@ router.put('/website/:websiteId', async (req, res) => {
 // Get user settings
 router.get('/user/:userId', async (req, res) => {
   try {
-    const user = await prisma.user.findUnique({
+    const user = await getPrismaClient().user.findUnique({
       where: { id: req.params.userId },
       select: {
         id: true,
@@ -107,7 +106,7 @@ router.put('/user/:userId', async (req, res) => {
   try {
     const { firstName, lastName, avatar } = req.body
     
-    const user = await prisma.user.update({
+    const user = await getPrismaClient().user.update({
       where: { id: req.params.userId },
       data: {
         firstName,
@@ -134,7 +133,7 @@ router.put('/user/:userId', async (req, res) => {
 // Get subscription settings
 router.get('/subscription/:userId', async (req, res) => {
   try {
-    const subscription = await prisma.subscription.findUnique({
+    const subscription = await getPrismaClient().subscription.findUnique({
       where: { userId: req.params.userId },
     })
     
@@ -153,7 +152,7 @@ router.put('/subscription/:userId', async (req, res) => {
   try {
     const { plan, status, cancelAtPeriodEnd } = req.body
     
-    const subscription = await prisma.subscription.update({
+    const subscription = await getPrismaClient().subscription.update({
       where: { userId: req.params.userId },
       data: {
         plan,

@@ -2,12 +2,11 @@ import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
 
 const router = Router()
-const prisma = getPrismaClient()
 
 // Get all templates
 router.get('/', async (req, res) => {
   try {
-    const templates = await prisma.template.findMany({
+    const templates = await getPrismaClient().template.findMany({
       where: { isActive: true },
       include: {
         pages: true,
@@ -27,7 +26,7 @@ router.get('/', async (req, res) => {
 // Get template by ID
 router.get('/:id', async (req, res) => {
   try {
-    const template = await prisma.template.findUnique({
+    const template = await getPrismaClient().template.findUnique({
       where: { id: req.params.id },
       include: {
         pages: {
