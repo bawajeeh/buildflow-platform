@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { cn } from '@/utils'
 import { API_CONFIG } from '@/config/api'
+import { useAuthStore } from '@/store'
 import { 
   Calendar, 
   Clock, 
@@ -29,7 +30,7 @@ import { Modal } from '@/components/ui'
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui'
 
 // Types
-import { Service, Booking, ServiceStaff, Website } from '@/types'
+import { Service, ServiceType, BookingStatus, PaymentStatus, ServiceStaff, Booking, Website } from '@/types'
 
 interface ServicesManagementProps {
   website: Website | null
@@ -84,11 +85,11 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
         customerId: '1',
         startTime: new Date('2024-01-15T10:00:00'),
         endTime: new Date('2024-01-15T11:00:00'),
-        status: 'CONFIRMED',
+        status: BookingStatus.CONFIRMED,
         notes: 'First time client',
         totalPrice: 80.00,
         depositPaid: 20.00,
-        paymentStatus: 'PAID',
+        paymentStatus: PaymentStatus.PAID,
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -101,11 +102,10 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
       {
         id: '1',
         serviceId: '1',
-        name: 'John Smith',
-        email: 'john@example.com',
-        phone: '+1234567890',
-        bio: 'Certified personal trainer with 5 years experience',
-        specialties: ['Weight Loss', 'Strength Training'],
+        staffId: '1',
+        staffName: 'John Smith',
+        staffEmail: 'john@example.com',
+        isPrimary: true,
       },
     ])
   }
@@ -449,7 +449,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSave, onCancel }) 
   const [formData, setFormData] = useState({
     name: service?.name || '',
     description: service?.description || '',
-    type: service?.type || 'APPOINTMENT',
+    type: service?.type || ServiceType.CONSULTATION,
     duration: service?.duration || 60,
     price: service?.price || 0,
     capacity: service?.capacity || 1,

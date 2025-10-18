@@ -678,6 +678,77 @@ export interface CollaborationEvent {
   timestamp: Date;
 }
 
+// Service Types
+export interface Service {
+  id: string;
+  websiteId: string;
+  name: string;
+  description: string;
+  type: ServiceType;
+  duration: number; // in minutes
+  price: number;
+  capacity: number;
+  advanceBookingDays: number;
+  cancellationHours: number;
+  bufferTime: number; // in minutes
+  allowRescheduling: boolean;
+  requireDeposit: boolean;
+  depositAmount: number;
+  isPublished: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum ServiceType {
+  CONSULTATION = 'CONSULTATION',
+  WORKSHOP = 'WORKSHOP',
+  COURSE = 'COURSE',
+  EVENT = 'EVENT',
+  OTHER = 'OTHER',
+}
+
+export interface Booking {
+  id: string;
+  serviceId: string;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  date: Date;
+  time: string;
+  duration: number;
+  status: BookingStatus;
+  paymentStatus: PaymentStatus;
+  totalAmount: number;
+  depositAmount: number;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export enum BookingStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED',
+}
+
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  PAID = 'PAID',
+  PARTIAL = 'PARTIAL',
+  REFUNDED = 'REFUNDED',
+}
+
+export interface ServiceStaff {
+  id: string;
+  serviceId: string;
+  staffId: string;
+  staffName: string;
+  staffEmail: string;
+  isPrimary: boolean;
+}
+
 // Export all types
 export * from './api';
 export * from './forms';
