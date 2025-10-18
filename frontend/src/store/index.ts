@@ -62,6 +62,7 @@ export const useAuthStore = create<AuthState>()(
       register: async (userData) => {
         set({ isLoading: true })
         try {
+          // API call to Render backend
           const response = await fetch('https://buildflow-platform.onrender.com/api/auth/register', {
             method: 'POST',
             headers: {
