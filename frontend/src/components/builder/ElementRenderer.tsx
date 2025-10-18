@@ -235,7 +235,7 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
               e.stopPropagation()
               try {
                 const { token } = useAuthStore.getState()
-                const response = await fetch(`/api/elements`, {
+                const response = await fetch(`https://buildflow-platform.onrender.com/api/elements`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -273,7 +273,7 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
               e.stopPropagation()
               try {
                 const { token } = useAuthStore.getState()
-                const response = await fetch(`/api/elements/${element.id}`, {
+                const response = await fetch(`https://buildflow-platform.onrender.com/api/elements/${element.id}`, {
                   method: 'DELETE',
                   headers: {
                     'Authorization': `Bearer ${token}`,

@@ -99,7 +99,7 @@ export const useAuthStore = create<AuthState>()(
       forgotPassword: async (email: string) => {
         set({ isLoading: true })
         try {
-          const response = await fetch('/api/auth/forgot-password', {
+          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/forgot-password', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ export const useAuthStore = create<AuthState>()(
       resetPassword: async (token: string, password: string) => {
         set({ isLoading: true })
         try {
-          const response = await fetch('/api/auth/reset-password', {
+          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/reset-password', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           const { token } = get()
-          const response = await fetch('/api/auth/profile', {
+          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/profile', {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -172,7 +172,7 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: async () => {
         try {
           const { token } = get()
-          const response = await fetch('/api/auth/refresh', {
+          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/refresh', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -240,7 +240,7 @@ export const useWebsiteStore = create<WebsiteState>()((set, get) => ({
       const { token } = useAuthStore.getState()
       console.log('Fetching websites with token:', token ? 'Token exists' : 'No token')
       
-      const response = await fetch('/api/websites', {
+      const response = await fetch('https://buildflow-platform.onrender.com/api/websites', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -270,7 +270,7 @@ export const useWebsiteStore = create<WebsiteState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch('/api/websites', {
+      const response = await fetch('https://buildflow-platform.onrender.com/api/websites', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -301,7 +301,7 @@ export const useWebsiteStore = create<WebsiteState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/websites/${id}`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -335,7 +335,7 @@ export const useWebsiteStore = create<WebsiteState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/websites/${id}`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -463,7 +463,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/websites/${websiteId}/pages`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${websiteId}/pages`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -495,7 +495,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         throw new Error('No website selected')
       }
 
-      const response = await fetch(`/api/websites/${currentWebsite.id}/pages`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${currentWebsite.id}/pages`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -526,7 +526,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/pages/${id}`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/pages/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -560,7 +560,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/pages/${id}`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/pages/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -596,7 +596,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         throw new Error('No page selected')
       }
 
-      const response = await fetch(`/api/pages/${currentPage.id}/elements`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/pages/${currentPage.id}/elements`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -632,7 +632,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/elements/${id}`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/elements/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -675,7 +675,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/elements/${id}`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/elements/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -708,7 +708,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/elements/${id}/move`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/elements/${id}/move`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -750,7 +750,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         throw new Error('No page selected')
       }
 
-      const response = await fetch(`/api/pages/${currentPage.id}/save`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/pages/${currentPage.id}/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

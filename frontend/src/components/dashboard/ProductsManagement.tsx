@@ -53,7 +53,7 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
   const fetchProducts = async () => {
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/websites/${website?.id}/products`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${website?.id}/products`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -321,7 +321,7 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
           onSave={async (product) => {
             try {
               const { token } = useAuthStore.getState()
-              const response = await fetch(`/api/websites/${website?.id}/products`, {
+              const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${website?.id}/products`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',

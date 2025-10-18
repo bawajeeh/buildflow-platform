@@ -55,7 +55,7 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
   const fetchServices = async () => {
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/websites/${website?.id}/services`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${website?.id}/services`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -372,7 +372,7 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
           onSave={async (service) => {
             try {
               const { token } = useAuthStore.getState()
-              const response = await fetch(`/api/websites/${website?.id}/services`, {
+              const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${website?.id}/services`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
