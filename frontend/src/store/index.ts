@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { User, Website, Page, Element } from '../types'
+import { User, Website, Page, Element, WebsiteStatus } from '../types'
 
 // Auth Store
 interface AuthState {
@@ -229,7 +229,7 @@ interface WebsiteState {
   unpublishWebsite: (id: string) => Promise<void>
 }
 
-export const useWebsiteStore = create<WebsiteState>()((set, get) => ({
+export const useWebsiteStore = create<WebsiteState>()((set) => ({
   websites: [],
   currentWebsite: null,
   isLoading: false,
@@ -378,10 +378,10 @@ export const useWebsiteStore = create<WebsiteState>()((set, get) => ({
 
       set((state) => ({
         websites: state.websites.map((website) =>
-          website.id === id ? { ...website, status: 'PUBLISHED' } : website
+          website.id === id ? { ...website, status: WebsiteStatus.PUBLISHED } : website
         ),
         currentWebsite: state.currentWebsite?.id === id 
-          ? { ...state.currentWebsite, status: 'PUBLISHED' }
+          ? { ...state.currentWebsite, status: WebsiteStatus.PUBLISHED }
           : state.currentWebsite,
         isLoading: false,
       }))
@@ -408,10 +408,10 @@ export const useWebsiteStore = create<WebsiteState>()((set, get) => ({
 
       set((state) => ({
         websites: state.websites.map((website) =>
-          website.id === id ? { ...website, status: 'DRAFT' } : website
+          website.id === id ? { ...website, status: WebsiteStatus.DRAFT } : website
         ),
         currentWebsite: state.currentWebsite?.id === id 
-          ? { ...state.currentWebsite, status: 'DRAFT' }
+          ? { ...state.currentWebsite, status: WebsiteStatus.DRAFT }
           : state.currentWebsite,
         isLoading: false,
       }))
