@@ -291,15 +291,45 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
                       </Button>
                     }
                   >
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      // TODO: Implement view product functionality
+                      console.log('View product:', product.id)
+                    }}>
                       <Eye className="w-4 h-4 mr-2" />
                       View
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => {
+                      setSelectedProduct(product)
+                      setIsEditModalOpen(true)
+                    }}>
                       <Edit className="w-4 h-4 mr-2" />
                       Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">
+                    <DropdownMenuItem 
+                      className="text-destructive"
+                      onClick={async () => {
+                        if (confirm('Are you sure you want to delete this product?')) {
+                          try {
+                            const { token } = useAuthStore.getState()
+                            const response = await fetch(`https://buildflow-platform.onrender.com/api/products/${product.id}`, {
+                              method: 'DELETE',
+                              headers: {
+                                'Authorization': `Bearer ${token}`,
+                              },
+                            })
+
+                            if (!response.ok) {
+                              throw new Error('Failed to delete product')
+                            }
+
+                            setProducts(prev => prev.filter(p => p.id !== product.id))
+                          } catch (error) {
+                            console.error('Error deleting product:', error)
+                            // TODO: Show error toast
+                          }
+                        }
+                      }}
+                    >
                       <Trash2 className="w-4 h-4 mr-2" />
                       Delete
                     </DropdownMenuItem>
@@ -355,9 +385,29 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
         {selectedProduct && (
           <ProductForm
             product={selectedProduct}
-            onSave={(product) => {
-              console.log('Update product:', product)
-              setIsEditModalOpen(false)
+            onSave={async (product) => {
+              try {
+                const { token } = useAuthStore.getState()
+                const response = await fetch(`https://buildflow-platform.onrender.com/api/products/${selectedProduct.id}`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify(product),
+                })
+
+                if (!response.ok) {
+                  throw new Error('Failed to update product')
+                }
+
+                const data = await response.json()
+                setProducts(prev => prev.map(p => p.id === selectedProduct.id ? data.data : p))
+                setIsEditModalOpen(false)
+              } catch (error) {
+                console.error('Error updating product:', error)
+                // TODO: Show error toast
+              }
             }}
             onCancel={() => setIsEditModalOpen(false)}
           />

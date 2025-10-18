@@ -405,9 +405,29 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
         {selectedService && (
           <ServiceForm
             service={selectedService}
-            onSave={(service) => {
-              console.log('Update service:', service)
-              setIsEditModalOpen(false)
+            onSave={async (service) => {
+              try {
+                const { token } = useAuthStore.getState()
+                const response = await fetch(`https://buildflow-platform.onrender.com/api/services/${selectedService.id}`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                  },
+                  body: JSON.stringify(service),
+                })
+
+                if (!response.ok) {
+                  throw new Error('Failed to update service')
+                }
+
+                const data = await response.json()
+                setServices(prev => prev.map(s => s.id === selectedService.id ? data.data : s))
+                setIsEditModalOpen(false)
+              } catch (error) {
+                console.error('Error updating service:', error)
+                // TODO: Show error toast
+              }
             }}
             onCancel={() => setIsEditModalOpen(false)}
           />
