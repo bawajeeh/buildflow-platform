@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { Element, ElementStyles } from '@/types'
 import { cn } from '@/utils'
 import { useAuthStore } from '@/store'
+import { API_CONFIG } from '@/config/api'
 
 // Element Components
 import {
@@ -235,7 +236,7 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
               e.stopPropagation()
               try {
                 const { token } = useAuthStore.getState()
-                const response = await fetch(`https://buildflow-platform.onrender.com/api/elements`, {
+                const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.CREATE, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -273,7 +274,7 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
               e.stopPropagation()
               try {
                 const { token } = useAuthStore.getState()
-                const response = await fetch(`https://buildflow-platform.onrender.com/api/elements/${element.id}`, {
+                const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.DELETE(element.id), {
                   method: 'DELETE',
                   headers: {
                     'Authorization': `Bearer ${token}`,

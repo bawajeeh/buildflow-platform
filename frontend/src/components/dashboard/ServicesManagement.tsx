@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { cn } from '@/utils'
+import { API_CONFIG } from '@/config/api'
 import { 
   Calendar, 
   Clock, 
@@ -55,7 +56,7 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
   const fetchServices = async () => {
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${website?.id}/services`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.SERVICES.LIST(website?.id || ''), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -372,7 +373,7 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
           onSave={async (service) => {
             try {
               const { token } = useAuthStore.getState()
-              const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${website?.id}/services`, {
+              const response = await fetch(API_CONFIG.ENDPOINTS.SERVICES.LIST(website?.id || ''), {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -408,7 +409,7 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
             onSave={async (service) => {
               try {
                 const { token } = useAuthStore.getState()
-                const response = await fetch(`https://buildflow-platform.onrender.com/api/services/${selectedService.id}`, {
+                const response = await fetch(API_CONFIG.ENDPOINTS.SERVICES.UPDATE(selectedService.id), {
                   method: 'PUT',
                   headers: {
                     'Content-Type': 'application/json',

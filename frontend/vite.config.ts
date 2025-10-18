@@ -20,9 +20,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: process.env.NODE_ENV === 'production' 
-          ? 'https://buildflow-platform.onrender.com' 
-          : 'http://localhost:5001',
+        target: 'http://localhost:5001',
         changeOrigin: true,
       },
     },

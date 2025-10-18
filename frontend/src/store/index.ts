@@ -242,7 +242,7 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
       const { token } = useAuthStore.getState()
       console.log('Fetching websites with token:', token ? 'Token exists' : 'No token')
       
-      const response = await fetch('https://buildflow-platform.onrender.com/api/websites', {
+      const response = await fetch(API_CONFIG.ENDPOINTS.WEBSITES.LIST, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -272,7 +272,7 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch('https://buildflow-platform.onrender.com/api/websites', {
+      const response = await fetch(API_CONFIG.ENDPOINTS.WEBSITES.CREATE, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -303,7 +303,7 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${id}`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.WEBSITES.GET(id), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -337,7 +337,7 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${id}`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.WEBSITES.GET(id), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -367,7 +367,7 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${id}/publish`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.WEBSITES.PUBLISH(id), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -397,7 +397,7 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${id}/unpublish`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.WEBSITES.UNPUBLISH(id), {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -465,7 +465,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${websiteId}/pages`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.LIST(websiteId), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -497,7 +497,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         throw new Error('No website selected')
       }
 
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${currentWebsite.id}/pages`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.LIST(currentWebsite.id), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -528,7 +528,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/pages/${id}`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.GET(id), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -562,7 +562,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/pages/${id}`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.GET(id), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -598,7 +598,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         throw new Error('No page selected')
       }
 
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/pages/${currentPage.id}/elements`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.LIST(currentPage.id), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -634,7 +634,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/elements/${id}`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.UPDATE(id), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -677,7 +677,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/elements/${id}`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.UPDATE(id), {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -710,7 +710,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/elements/${id}/move`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.MOVE(id), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -752,7 +752,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         throw new Error('No page selected')
       }
 
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/pages/${currentPage.id}/save`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.SAVE(currentPage.id), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

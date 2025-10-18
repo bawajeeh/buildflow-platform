@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { cn } from '@/utils'
+import { API_CONFIG } from '@/config/api'
 import { 
   Package, 
   Plus, 
@@ -53,7 +54,7 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
   const fetchProducts = async () => {
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${website?.id}/products`, {
+      const response = await fetch(API_CONFIG.ENDPOINTS.PRODUCTS.LIST(website?.id || ''), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -311,7 +312,7 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
                         if (confirm('Are you sure you want to delete this product?')) {
                           try {
                             const { token } = useAuthStore.getState()
-                            const response = await fetch(`https://buildflow-platform.onrender.com/api/products/${product.id}`, {
+                            const response = await fetch(API_CONFIG.ENDPOINTS.PRODUCTS.DELETE(product.id), {
                               method: 'DELETE',
                               headers: {
                                 'Authorization': `Bearer ${token}`,
@@ -351,7 +352,7 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
           onSave={async (product) => {
             try {
               const { token } = useAuthStore.getState()
-              const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${website?.id}/products`, {
+              const response = await fetch(API_CONFIG.ENDPOINTS.PRODUCTS.CREATE(website?.id || ''), {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -388,7 +389,7 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
             onSave={async (product) => {
               try {
                 const { token } = useAuthStore.getState()
-                const response = await fetch(`https://buildflow-platform.onrender.com/api/products/${selectedProduct.id}`, {
+                const response = await fetch(API_CONFIG.ENDPOINTS.PRODUCTS.UPDATE(selectedProduct.id), {
                   method: 'PUT',
                   headers: {
                     'Content-Type': 'application/json',
