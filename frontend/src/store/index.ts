@@ -366,7 +366,7 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/websites/${id}/publish`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${id}/publish`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -396,7 +396,7 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(`/api/websites/${id}/unpublish`, {
+      const response = await fetch(`https://buildflow-platform.onrender.com/api/websites/${id}/unpublish`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
