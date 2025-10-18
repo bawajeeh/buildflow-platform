@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true })
         try {
-          const response = await fetch('/api/auth/login', {
+          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/login', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ export const useAuthStore = create<AuthState>()(
       register: async (userData) => {
         set({ isLoading: true })
         try {
-          const response = await fetch('/api/auth/register', {
+          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/register', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
