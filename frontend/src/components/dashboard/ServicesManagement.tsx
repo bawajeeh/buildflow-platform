@@ -4,20 +4,15 @@ import { API_CONFIG } from '@/config/api'
 import { useAuthStore } from '@/store'
 import { 
   Calendar, 
-  Clock, 
   Users, 
   Plus, 
   Edit, 
   Trash2, 
   Eye, 
-  Search, 
   Filter,
   CheckCircle,
-  XCircle,
-  AlertCircle,
   MoreVertical,
   DollarSign,
-  TrendingUp,
   User
 } from 'lucide-react'
 
@@ -80,16 +75,19 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
     setBookings([
       {
         id: '1',
-        websiteId: website?.id || '',
         serviceId: '1',
         customerId: '1',
-        startTime: new Date('2024-01-15T10:00:00'),
-        endTime: new Date('2024-01-15T11:00:00'),
+        customerName: 'John Doe',
+        customerEmail: 'john@example.com',
+        customerPhone: '+1234567890',
+        date: new Date('2024-01-15'),
+        time: '10:00',
+        duration: 60,
         status: BookingStatus.CONFIRMED,
-        notes: 'First time client',
-        totalPrice: 80.00,
-        depositPaid: 20.00,
         paymentStatus: PaymentStatus.PAID,
+        totalAmount: 80.00,
+        depositAmount: 20.00,
+        notes: 'First time client',
         createdAt: new Date(),
         updatedAt: new Date(),
       },
@@ -532,7 +530,7 @@ const ServiceForm: React.FC<ServiceFormProps> = ({ service, onSave, onCancel }) 
           <input
             type="checkbox"
             checked={formData.allowRescheduling}
-            onChange={(e) => setFormData({ ...formData, allowRescheduling: e.target.checked })}
+            onChange={(e) => setFormData({ ...formData, allowRescheduling: e.target.checked as boolean })}
           />
           Allow Rescheduling
         </label>
