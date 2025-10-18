@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { User, Website, Page, Element, WebsiteStatus } from '../types'
+import { API_CONFIG } from '../config/api'
 
 // Auth Store
 interface AuthState {
@@ -33,7 +34,7 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true })
         try {
-          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/login', {
+          const response = await fetch(API_CONFIG.ENDPOINTS.AUTH.LOGIN, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -63,7 +64,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           // API call to Render backend
-          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/register', {
+          const response = await fetch(API_CONFIG.ENDPOINTS.AUTH.REGISTER, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -100,7 +101,7 @@ export const useAuthStore = create<AuthState>()(
       forgotPassword: async (email: string) => {
         set({ isLoading: true })
         try {
-          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/forgot-password', {
+          const response = await fetch(API_CONFIG.ENDPOINTS.AUTH.FORGOT_PASSWORD, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -122,7 +123,7 @@ export const useAuthStore = create<AuthState>()(
       resetPassword: async (token: string, password: string) => {
         set({ isLoading: true })
         try {
-          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/reset-password', {
+          const response = await fetch(API_CONFIG.ENDPOINTS.AUTH.RESET_PASSWORD, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -145,7 +146,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           const { token } = get()
-          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/profile', {
+          const response = await fetch(API_CONFIG.ENDPOINTS.AUTH.PROFILE, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -173,7 +174,7 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: async () => {
         try {
           const { token } = get()
-          const response = await fetch('https://buildflow-platform.onrender.com/api/auth/refresh', {
+          const response = await fetch(API_CONFIG.ENDPOINTS.AUTH.REFRESH, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,

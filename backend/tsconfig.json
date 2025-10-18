@@ -9,7 +9,7 @@
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": false,
+    "noEmit": true,
     "declaration": true,
     "outDir": "./dist",
     "rootDir": "./src",
