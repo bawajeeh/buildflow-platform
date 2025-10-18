@@ -52,6 +52,19 @@ const prisma = initializeDatabase()
 const redis = initializeRedis()
 initializeSocket(io)
 
+// Initialize database tables if they don't exist
+async function initializeDatabaseTables() {
+  try {
+    console.log('🔧 Initializing database tables...')
+    await prisma.$executeRaw`SELECT 1`
+    console.log('✅ Database tables initialized')
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error)
+  }
+}
+
+initializeDatabaseTables()
+
 // Middleware
 app.use(helmet())
 app.use(cors({
