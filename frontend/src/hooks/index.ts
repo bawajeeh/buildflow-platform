@@ -9,13 +9,13 @@ export const useAuth = () => {
   const { user, token, login: storeLogin, logout: storeLogout, isLoading } = useAuthStore()
 
   const login = useCallback(async (email: string, password: string) => {
-    const response = await apiService.login(email, password)
-    if (response.success && response.data) {
-      apiService.setToken(response.data.token)
-      storeLogin(response.data.user, response.data.token)
+    // Use store login instead of apiService to avoid conflicts
+    try {
+      await storeLogin(email, password)
       return { success: true }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Login failed' }
     }
-    return { success: false, error: response.error }
   }, [storeLogin])
 
   const logout = useCallback(() => {
