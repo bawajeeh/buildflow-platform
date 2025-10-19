@@ -19,6 +19,7 @@ import ServicesManagement from '../dashboard/ServicesManagement'
 import BookingsManagement from '../dashboard/BookingsManagement'
 import CustomersManagement from '../dashboard/CustomersManagement'
 import UserSettings from '../dashboard/UserSettings'
+import MediaLibrary from '../dashboard/MediaLibrary'
 import DebugInfo from '../DebugInfo'
 
 // Types
@@ -105,7 +106,7 @@ const DashboardLayout: React.FC<{ children: React.ReactNode }> = ({ children }) 
         return <TemplatesLibrary />
       
       case 'media':
-        return <MediaLibrary />
+        return <MediaLibrary website={selectedWebsite} />
       
       case 'settings':
         return <UserSettings />
