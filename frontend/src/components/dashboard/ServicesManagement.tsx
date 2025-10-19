@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { cn } from '@/utils'
 import { API_CONFIG } from '@/config/api'
+import toast from 'react-hot-toast'
 import { useAuthStore } from '@/store'
 import { 
   Calendar, 
@@ -390,6 +391,7 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
               const data = await response.json()
               setServices(prev => [...prev, data.data])
               setIsCreateModalOpen(false)
+              toast.success('Service created successfully!')
             } catch (error) {
               console.error('Error creating service:', error)
             }
@@ -426,9 +428,10 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
                 const data = await response.json()
                 setServices(prev => prev.map(s => s.id === selectedService.id ? data.data : s))
                 setIsEditModalOpen(false)
+                toast.success('Service updated successfully!')
               } catch (error) {
                 console.error('Error updating service:', error)
-                // TODO: Show error toast
+                toast.error('Failed to update service. Please try again.')
               }
             }}
             onCancel={() => setIsEditModalOpen(false)}
