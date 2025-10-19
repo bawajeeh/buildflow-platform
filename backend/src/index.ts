@@ -71,6 +71,7 @@ app.use(cors({
   origin: [
     'https://buildflow-platform-frontend.vercel.app',
     'https://buildflow-platform-frontend-tmbq.vercel.app',
+    'https://buildflow-platform-frontend-3bfn.vercel.app', // Added new Vercel domain
     'https://buildflow-platform-1.onrender.com',
     'http://localhost:3000',
     'http://localhost:3001'
@@ -108,7 +109,7 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
     port: process.env.PORT || 5001,
     database: process.env.DATABASE_URL ? 'Connected' : 'Not configured',
-    version: '1.0.1' // Force redeploy
+          version: '1.0.2' // Force redeploy - Added new Vercel domain
   })
 })
 
