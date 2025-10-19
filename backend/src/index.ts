@@ -84,12 +84,29 @@ app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
 app.use(rateLimiter)
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({
+    message: 'BuildFlow API Server',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/health',
+      api: '/api',
+      docs: '/api-docs'
+    },
+    timestamp: new Date().toISOString()
+  })
+})
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    port: process.env.PORT || 5001,
+    database: process.env.DATABASE_URL ? 'Connected' : 'Not configured'
   })
 })
 
@@ -115,16 +132,6 @@ app.use('/api/settings', authMiddleware, settingsRoutes)
 // Error handling
 app.use(notFound)
 app.use(errorHandler)
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    port: process.env.PORT || 5001
-  })
-})
 
 // Start server
 const PORT = process.env.PORT || 5001
