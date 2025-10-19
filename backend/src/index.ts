@@ -68,8 +68,15 @@ initializeDatabaseTables()
 // Middleware
 app.use(helmet())
 app.use(cors({
-  origin: true, // Allow all origins for now
+  origin: [
+    'https://buildflow-platform-frontend.vercel.app',
+    'https://buildflow-platform-1.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }))
 app.use(compression())
 app.use(morgan('combined'))

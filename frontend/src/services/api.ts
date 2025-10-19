@@ -1,6 +1,6 @@
 // API service for frontend-backend communication
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://buildflow-platform.onrender.com'
+const API_BASE_URL = 'https://buildflow-platform.onrender.com'
 
 interface ApiResponse<T = any> {
   success: boolean
