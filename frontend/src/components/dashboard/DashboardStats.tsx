@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { cn } from '@/utils'
 import { Globe, Eye, Edit, Trash2, MoreVertical, Calendar, Users, TrendingUp } from 'lucide-react'
 import { Website } from '@/types'
+import { useAuthStore } from '@/store'
+import { API_CONFIG } from '@/config/api'
 
 // Components
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
@@ -16,6 +18,60 @@ interface DashboardStatsProps {
 }
 
 const DashboardStats: React.FC<DashboardStatsProps> = ({ websites = [] }) => {
+  const [monthlyStats, setMonthlyStats] = useState({
+    websitesCreated: 0,
+    totalVisitors: 0,
+    totalOrders: 0,
+    totalRevenue: 0
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const { token } = useAuthStore()
+
+  useEffect(() => {
+    fetchMonthlyStats()
+  }, [])
+
+  const fetchMonthlyStats = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/analytics/monthly-stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch monthly stats')
+      }
+
+      const data = await response.json()
+      setMonthlyStats(data.data || {
+        websitesCreated: 0,
+        totalVisitors: 0,
+        totalOrders: 0,
+        totalRevenue: 0
+      })
+    } catch (error) {
+      console.error('Error fetching monthly stats:', error)
+      // Calculate from websites if API fails
+      const currentMonth = new Date().getMonth()
+      const currentYear = new Date().getFullYear()
+      const websitesThisMonth = websites.filter(w => {
+        const createdDate = new Date(w.createdAt)
+        return createdDate.getMonth() === currentMonth && createdDate.getFullYear() === currentYear
+      }).length
+      
+      setMonthlyStats({
+        websitesCreated: websitesThisMonth,
+        totalVisitors: 0,
+        totalOrders: 0,
+        totalRevenue: 0
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const totalWebsites = websites.length
   const publishedWebsites = websites.filter(w => w.status === 'PUBLISHED').length
   const draftWebsites = websites.filter(w => w.status === 'DRAFT').length
@@ -44,7 +100,7 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({ websites = [] }) => {
     },
     {
       title: 'This Month',
-      value: 12,
+      value: isLoading ? '...' : monthlyStats.websitesCreated,
       icon: TrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
@@ -95,16 +151,50 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
 }) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
-  const handleDeleteWebsite = (website: Website) => {
+  const handleDeleteWebsite = async (website: Website) => {
     if (confirm(`Are you sure you want to delete "${website.name}"?`)) {
-      // Handle delete
-      console.log('Delete website:', website.id)
+      try {
+        const { token } = useAuthStore.getState()
+        const response = await fetch(`${API_CONFIG.BASE_URL}/api/websites/${website.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to delete website')
+        }
+
+        // Refresh websites list
+        window.location.reload()
+      } catch (error) {
+        console.error('Error deleting website:', error)
+        alert('Failed to delete website. Please try again.')
+      }
     }
   }
 
-  const handlePublishWebsite = (website: Website) => {
-    // Handle publish
-    console.log('Publish website:', website.id)
+  const handlePublishWebsite = async (website: Website) => {
+    try {
+      const { token } = useAuthStore.getState()
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/websites/${website.id}/publish`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to publish website')
+      }
+
+      // Refresh websites list
+      window.location.reload()
+    } catch (error) {
+      console.error('Error publishing website:', error)
+      alert('Failed to publish website. Please try again.')
+    }
   }
 
   const handleWebsiteCreated = (website: Website) => {
