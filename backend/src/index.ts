@@ -107,7 +107,8 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     port: process.env.PORT || 5001,
-    database: process.env.DATABASE_URL ? 'Connected' : 'Not configured'
+    database: process.env.DATABASE_URL ? 'Connected' : 'Not configured',
+    version: '1.0.1' // Force redeploy
   })
 })
 
