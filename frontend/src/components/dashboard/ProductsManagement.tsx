@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { cn } from '@/utils'
 import { API_CONFIG } from '@/config/api'
+import toast from 'react-hot-toast'
 import { 
   Package, 
   Plus, 
@@ -293,8 +294,8 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
                     }
                   >
                     <DropdownMenuItem onClick={() => {
-                      // TODO: Implement view product functionality
-                      console.log('View product:', product.id)
+                      // Navigate to product details page
+                      window.open(`/products/${product.id}`, '_blank')
                     }}>
                       <Eye className="w-4 h-4 mr-2" />
                       View
@@ -324,9 +325,10 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
                             }
 
                             setProducts(prev => prev.filter(p => p.id !== product.id))
+                            toast.success('Product deleted successfully!')
                           } catch (error) {
                             console.error('Error deleting product:', error)
-                            // TODO: Show error toast
+                            toast.error('Failed to delete product. Please try again.')
                           }
                         }
                       }}
@@ -368,9 +370,10 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
               const data = await response.json()
               setProducts(prev => [...prev, data.data])
               setIsCreateModalOpen(false)
+              toast.success('Product created successfully!')
             } catch (error) {
               console.error('Error creating product:', error)
-              // TODO: Show error toast
+              toast.error('Failed to create product. Please try again.')
             }
           }}
           onCancel={() => setIsCreateModalOpen(false)}
@@ -405,9 +408,10 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
                 const data = await response.json()
                 setProducts(prev => prev.map(p => p.id === selectedProduct.id ? data.data : p))
                 setIsEditModalOpen(false)
+                toast.success('Product updated successfully!')
               } catch (error) {
                 console.error('Error updating product:', error)
-                // TODO: Show error toast
+                toast.error('Failed to update product. Please try again.')
               }
             }}
             onCancel={() => setIsEditModalOpen(false)}

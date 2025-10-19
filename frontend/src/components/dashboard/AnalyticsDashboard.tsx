@@ -25,6 +25,8 @@ import { Badge } from '@/components/ui'
 
 // Types
 import { Analytics, Website } from '@/types'
+import { useAuthStore } from '@/store'
+import { API_CONFIG } from '@/config/api'
 
 interface AnalyticsDashboardProps {
   website: Website | null
@@ -43,47 +45,27 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ website }) => {
 
   const fetchAnalytics = async () => {
     setIsLoading(true)
-    // Mock data for now
-    const mockAnalytics: Analytics[] = [
-      {
-        id: '1',
-        websiteId: website?.id || '',
-        date: new Date('2024-01-15'),
-        visitors: 1250,
-        pageViews: 3200,
-        sessions: 1100,
-        bounceRate: 45.2,
-        avgSessionDuration: 180,
-        conversions: 25,
-        revenue: 1250.00,
-        topPages: [
-          { pageId: '1', pageName: 'Home', views: 800, uniqueViews: 600, avgTimeOnPage: 120, bounceRate: 40 },
-          { pageId: '2', pageName: 'Products', views: 600, uniqueViews: 450, avgTimeOnPage: 180, bounceRate: 35 },
-          { pageId: '3', pageName: 'About', views: 400, uniqueViews: 350, avgTimeOnPage: 90, bounceRate: 50 },
-        ],
-        trafficSources: [
-          { source: 'Google', medium: 'organic', visitors: 600, sessions: 550, conversions: 15 },
-          { source: 'Facebook', medium: 'social', visitors: 300, sessions: 280, conversions: 5 },
-          { source: 'Direct', medium: 'none', visitors: 200, sessions: 180, conversions: 3 },
-          { source: 'Email', medium: 'email', visitors: 150, sessions: 140, conversions: 2 },
-        ],
-        deviceTypes: [
-          { deviceType: 'desktop', visitors: 600, sessions: 550, conversions: 15 },
-          { deviceType: 'mobile', visitors: 500, sessions: 450, conversions: 8 },
-          { deviceType: 'tablet', visitors: 150, sessions: 140, conversions: 2 },
-        ],
-        locations: [
-          { country: 'United States', city: 'New York', visitors: 400, sessions: 350, conversions: 8 },
-          { country: 'United Kingdom', city: 'London', visitors: 200, sessions: 180, conversions: 4 },
-          { country: 'Canada', city: 'Toronto', visitors: 150, sessions: 140, conversions: 3 },
-        ],
-      },
-    ]
-    
-    setTimeout(() => {
-      setAnalytics(mockAnalytics)
+    try {
+      const { token } = useAuthStore.getState()
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/analytics?websiteId=${website?.id}&timeRange=${timeRange}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics')
+      }
+
+      const data = await response.json()
+      setAnalytics(data.data || [])
+    } catch (error) {
+      console.error('Error fetching analytics:', error)
+      // Fallback to empty array if API fails
+      setAnalytics([])
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   const currentData = analytics[0] || {
