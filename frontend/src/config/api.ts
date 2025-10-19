@@ -1,4 +1,4 @@
-// API Configuration
+// API Configuration - BuildFlow Backend
 const API_BASE_URL = 'https://buildflow-platform.onrender.com'
 
 export const API_CONFIG = {

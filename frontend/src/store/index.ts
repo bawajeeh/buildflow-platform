@@ -64,6 +64,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           // API call to Render backend
+          console.log('Register API URL:', API_CONFIG.ENDPOINTS.AUTH.REGISTER)
           const response = await fetch(API_CONFIG.ENDPOINTS.AUTH.REGISTER, {
             method: 'POST',
             headers: {
