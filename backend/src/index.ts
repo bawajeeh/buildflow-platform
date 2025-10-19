@@ -70,6 +70,7 @@ app.use(helmet())
 app.use(cors({
   origin: [
     'https://buildflow-platform-frontend.vercel.app',
+    'https://buildflow-platform-frontend-tmbq.vercel.app',
     'https://buildflow-platform-1.onrender.com',
     'http://localhost:3000',
     'http://localhost:3001'
