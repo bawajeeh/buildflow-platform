@@ -18,6 +18,7 @@ import OrdersManagement from '../dashboard/OrdersManagement'
 import ServicesManagement from '../dashboard/ServicesManagement'
 import BookingsManagement from '../dashboard/BookingsManagement'
 import CustomersManagement from '../dashboard/CustomersManagement'
+import UserSettings from '../dashboard/UserSettings'
 import DebugInfo from '../DebugInfo'
 
 // Types
