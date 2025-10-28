@@ -75,11 +75,17 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       <div
         ref={setPageRef}
         className={`min-h-full p-8 transition-colors ${
-          isPageOver ? 'bg-primary/5 border-2 border-dashed border-primary' : 'bg-background'
+          isPageOver ? 'bg-blue-50 border-2 border-dashed border-blue-400' : 'bg-background'
         }`}
         onClick={handleCanvasClick}
       >
-        <EmptyState />
+        {isPageOver && (
+          <div className="text-center py-12">
+            <div className="text-2xl mb-2">🎯</div>
+            <p className="text-blue-600 font-medium">Drop here to add element</p>
+          </div>
+        )}
+        {!isPageOver && <EmptyState />}
       </div>
     )
   }

@@ -1,8 +1,42 @@
 import React from 'react'
+import { useDrag } from '@dnd-kit/core'
 import { cn } from '@/utils'
 
 interface BuilderSidebarProps {
   className?: string
+}
+
+interface DragElement {
+  name: string
+  icon: string
+  type: string
+}
+
+interface ElementDraggableProps {
+  element: DragElement
+}
+
+const ElementDraggable: React.FC<ElementDraggableProps> = ({ element }) => {
+  const { attributes, listeners, setNodeRef, isDragging } = useDrag({
+    id: element.type,
+    type: 'element',
+    data: element,
+  })
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      className={cn(
+        'flex items-center space-x-2 p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md cursor-grab active:cursor-grabbing',
+        isDragging && 'opacity-50'
+      )}
+    >
+      <span>{element.icon}</span>
+      <span>{element.name}</span>
+    </div>
+  )
 }
 
 const BuilderSidebar: React.FC<BuilderSidebarProps> = ({ className }) => {
@@ -48,14 +82,7 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({ className }) => {
             </h3>
             <div className="space-y-1">
               {category.elements.map((element) => (
-                <div
-                  key={element.type}
-                  className="flex items-center space-x-2 p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md cursor-pointer"
-                  draggable
-                >
-                  <span>{element.icon}</span>
-                  <span>{element.name}</span>
-                </div>
+                <ElementDraggable key={element.type} element={element} />
               ))}
             </div>
           </div>
