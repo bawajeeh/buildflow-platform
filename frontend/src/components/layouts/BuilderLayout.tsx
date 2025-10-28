@@ -39,15 +39,38 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   // Load website when websiteId changes
   useEffect(() => {
-    if (websiteId && websites.length > 0) {
-      const website = websites.find(w => w.id === websiteId)
-      if (website) {
-        setCurrentWebsite(website)
+    const loadWebsite = async () => {
+      if (websiteId) {
+        const website = websites.find(w => w.id === websiteId)
+        if (website) {
+          setCurrentWebsite(website)
+        } else if (websites.length === 0) {
+          await fetchWebsites()
+        }
       }
-    } else if (websites.length === 0) {
-      fetchWebsites()
     }
+    loadWebsite()
   }, [websiteId, websites, setCurrentWebsite, fetchWebsites])
+
+  // Load pages when website changes
+  const { fetchPages, currentPage, setCurrentPage } = useBuilderStore()
+  
+  useEffect(() => {
+    const loadPages = async () => {
+      if (currentWebsite && (!currentPage || currentPage.websiteId !== currentWebsite.id)) {
+        try {
+          await fetchPages(currentWebsite.id)
+        } catch (error) {
+          console.error('Failed to fetch pages:', error)
+          // If no pages exist, create a default page
+          if (currentWebsite) {
+            // TODO: Create default homepage
+          }
+        }
+      }
+    }
+    loadPages()
+  }, [currentWebsite, currentPage, fetchPages])
 
   // Handle element operations
   const handleAddElement = async (element: Element, parentId?: string) => {
