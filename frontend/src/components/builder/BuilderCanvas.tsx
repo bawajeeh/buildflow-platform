@@ -73,50 +73,66 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   // Handle drop event
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault()
-      const data = e.dataTransfer.getData('application/json')
-      if (data) {
-        try {
-          const elementData = JSON.parse(data)
-          const newElement: Element = {
-            id: `element-${Date.now()}`,
-            type: elementData.type.toUpperCase() as any, // Ensure type is uppercase
-            name: elementData.name,
-            props: {},
-            styles: {},
-            order: sortedElements.length,
-            isVisible: true,
-            responsive: {},
-            pageId: page?.id, // Add pageId from current page
-            parentId: undefined, // No parent initially
-          }
-          await addElement(newElement)
-          toast.success(`${elementData.name} added successfully`)
-        } catch (error) {
-          console.error('Failed to add element:', error)
-          toast.error('Failed to add element')
+    e.stopPropagation()
+    
+    const data = e.dataTransfer.getData('application/json')
+    if (data) {
+      try {
+        const elementData = JSON.parse(data)
+        const newElement: Element = {
+          id: `element-${Date.now()}`,
+          type: elementData.type.toUpperCase() as any,
+          name: elementData.name,
+          props: {},
+          styles: {},
+          order: sortedElements.length,
+          isVisible: true,
+          responsive: {},
+          pageId: page?.id,
+          parentId: undefined,
         }
+        
+        // Show success message with emoji
+        await addElement(newElement)
+        toast.success(`✅ ${elementData.name} added successfully!`, {
+          duration: 2000,
+          style: {
+            background: '#10B981',
+            color: '#fff',
+          },
+        })
+      } catch (error) {
+        console.error('Failed to add element:', error)
+        toast.error('❌ Failed to add element', {
+          duration: 3000,
+        })
       }
-  }, [addElement, sortedElements.length])
+    }
+  }, [addElement, sortedElements.length, page?.id])
 
   // Render empty state if no elements
   if (!page || sortedElements.length === 0) {
     return (
       <div
         ref={setPageRef}
-        className={`min-h-full p-8 transition-colors ${
-          isPageOver ? 'bg-blue-50 border-2 border-dashed border-blue-400' : 'bg-background'
+        className={`min-h-full p-8 transition-all duration-300 ${
+          isPageOver 
+            ? 'bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-dashed border-blue-400 shadow-lg' 
+            : 'bg-gradient-to-br from-gray-50 to-white'
         }`}
         onClick={handleCanvasClick}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}
       >
-        {isPageOver && (
-          <div className="text-center py-12">
-            <div className="text-2xl mb-2">🎯</div>
-            <p className="text-blue-600 font-medium">Drop here to add element</p>
+        {isPageOver ? (
+          <div className="text-center py-16 animate-pulse">
+            <div className="text-6xl mb-4 transform scale-110 transition-transform">✨</div>
+            <p className="text-blue-600 font-semibold text-lg">Drop your element here!</p>
+            <p className="text-blue-400 text-sm mt-1">Release to add to page</p>
           </div>
+        ) : (
+          <EmptyState />
         )}
-        {!isPageOver && <EmptyState />}
       </div>
     )
   }
