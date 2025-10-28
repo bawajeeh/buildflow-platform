@@ -78,6 +78,16 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
           isPageOver ? 'bg-blue-50 border-2 border-dashed border-blue-400' : 'bg-background'
         }`}
         onClick={handleCanvasClick}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault()
+          const data = e.dataTransfer.getData('application/json')
+          if (data) {
+            const element = JSON.parse(data)
+            console.log('Dropped element:', element)
+            // TODO: Add element to page
+          }
+        }}
       >
         {isPageOver && (
           <div className="text-center py-12">

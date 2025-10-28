@@ -1,5 +1,4 @@
-import React from 'react'
-import { useDrag } from '@dnd-kit/core'
+import React, { useState } from 'react'
 import { cn } from '@/utils'
 
 interface BuilderSidebarProps {
@@ -17,19 +16,25 @@ interface ElementDraggableProps {
 }
 
 const ElementDraggable: React.FC<ElementDraggableProps> = ({ element }) => {
-  const { attributes, listeners, setNodeRef, isDragging } = useDrag({
-    id: element.type,
-    type: 'element',
-    data: element,
-  })
+  const [isDragging, setIsDragging] = useState(false)
+
+  const handleDragStart = (e: React.DragEvent) => {
+    setIsDragging(true)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('application/json', JSON.stringify(element))
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+  }
 
   return (
     <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       className={cn(
-        'flex items-center space-x-2 p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md cursor-grab active:cursor-grabbing',
+        'flex items-center space-x-2 p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md cursor-grab active:cursor-grabbing select-none',
         isDragging && 'opacity-50'
       )}
     >
