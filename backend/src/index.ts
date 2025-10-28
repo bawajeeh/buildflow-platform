@@ -110,7 +110,7 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
     port: process.env.PORT || 5001,
     database: process.env.DATABASE_URL ? 'Connected' : 'Not configured',
-          version: '1.0.2' // Force redeploy - Added new Vercel domain
+          version: '1.0.3' // CORS fix for ain90.online
   })
 })
 

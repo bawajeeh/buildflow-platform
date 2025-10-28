@@ -1,5 +1,5 @@
 // API Configuration - BuildFlow Backend
-const API_BASE_URL = 'https://buildflow-platform.onrender.com'
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'https://buildflow-platform.onrender.com'
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,

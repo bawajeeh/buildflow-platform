@@ -18,6 +18,8 @@ data:
   NODE_ENV: "production"
   PORT: "5001"
   FRONTEND_URL: "https://app.buildflow.com"
+  # Updated for custom domain
+  FRONTEND_URL: "https://AIN90.online"
   EMAIL_HOST: "smtp.gmail.com"
   EMAIL_PORT: "587"
   EMAIL_USER: "noreply@buildflow.com"

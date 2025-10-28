@@ -19,9 +19,25 @@
 Add these environment variables in Vercel:
 
 ```
-VITE_API_URL=https://buildflow-platform.onrender.com
+VITE_API_URL=https://api.ain90.online
 NODE_ENV=production
 ```
+
+### **2.1. 🌐 DNS SETUP (GoDaddy)**
+
+After adding domain in Vercel, update GoDaddy DNS records:
+
+**Remove these conflicting A records:**
+- `76.223.105.230`
+- `13.248.243.5`
+
+**Add this new A record:**
+- **Type:** A
+- **Name:** @
+- **Value:** 216.198.79.1
+- **TTL:** 3600
+
+Then click **"Refresh"** button in Vercel to verify.
 
 ### **3. 📁 PROJECT STRUCTURE**
 
@@ -62,9 +78,12 @@ If you want a custom domain:
 ## 🎯 **EXPECTED RESULT**
 
 After deployment, your frontend will be available at:
-- **Vercel URL**: `https://your-project-name.vercel.app`
+- **Frontend URL**: `https://ain90.online` 🚀
 - **API Backend**: `https://buildflow-platform.onrender.com` ✅
 - **Full Integration**: Frontend ↔ Backend communication working ✅
+
+**Once you set up the api.ain90.online subdomain:**
+- **API Backend**: `https://api.ain90.online` ✅
 
 ## 🔍 **VERIFICATION CHECKLIST**
 

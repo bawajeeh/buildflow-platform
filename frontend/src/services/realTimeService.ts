@@ -37,7 +37,7 @@ class RealTimeService {
   private reconnectAttempts: number = 0
 
   constructor(config: RealTimeConfig = {
-    serverUrl: 'http://localhost:5000',
+    serverUrl: import.meta.env.VITE_API_URL || 'https://buildflow-platform.onrender.com',
     autoConnect: true,
     reconnectAttempts: 5,
     reconnectDelay: 1000
