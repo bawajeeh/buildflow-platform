@@ -628,41 +628,54 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         isLoading: false,
       }))
 
-      // Try to save to backend in background (optional)
+      // Try to save to backend in background
       try {
         const { token } = useAuthStore.getState()
-        const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.LIST(currentPage.id), {
+        const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.CREATE, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify(newElement),
+          body: JSON.stringify({
+            pageId: currentPage.id,
+            type: element.type,
+            name: element.name,
+            props: element.props || {},
+            styles: element.styles || {},
+            parentId: parentId || null,
+            order: element.order || 0,
+          }),
         })
         
         if (response.ok) {
-          const data = await response.json()
+          const savedElement = await response.json()
+          console.log('Element saved to backend:', savedElement)
+          
           // Update with real ID from backend
           set((state) => ({
             pages: state.pages.map((page) => ({
               ...page,
               elements: page.elements.map((el) => 
-                el.id === tempId ? data : el
+                el.id === tempId ? { ...el, id: savedElement.id } : el
               ),
             })),
             currentPage: state.currentPage ? {
               ...state.currentPage,
               elements: state.currentPage.elements.map((el) => 
-                el.id === tempId ? data : el
+                el.id === tempId ? { ...el, id: savedElement.id } : el
               ),
             } : null,
           }))
+        } else {
+          console.error('Failed to save element to backend:', await response.text())
         }
       } catch (backendError) {
-        console.log('Backend save failed, element still in canvas:', backendError)
+        console.error('Backend save failed:', backendError)
       }
     } catch (error) {
       set({ isLoading: false })
+      console.error('Error adding element:', error)
       throw error
     }
   },
