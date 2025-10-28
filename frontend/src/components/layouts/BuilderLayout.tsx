@@ -161,8 +161,10 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             <BuilderSidebar
               website={currentWebsite}
               currentPage={currentPage}
-              onPageSelect={(page) => {
-                // Handle page selection
+              onPageSelect={setCurrentPage}
+              onPageCreate={async (pageData) => {
+                const newPage = await createPage(pageData)
+                setCurrentPage(newPage)
               }}
             />
           )}
