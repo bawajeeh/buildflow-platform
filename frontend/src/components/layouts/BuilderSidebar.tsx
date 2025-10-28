@@ -73,7 +73,9 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
       const newPage = await onPageCreate({
         name: pageName,
         slug,
-        title: pageName
+        title: pageName,
+        description: '',
+        isHomePage: false
       })
       toast.success(`Page "${pageName}" created!`)
       setPageName('')

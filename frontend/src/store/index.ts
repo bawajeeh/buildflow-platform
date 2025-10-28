@@ -504,13 +504,20 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         throw new Error('No website selected')
       }
 
+      // Map frontend data to backend format
+      const backendData = {
+        name: pageData.name,
+        slug: pageData.slug,
+        isHome: pageData.isHomePage || false,
+      }
+
       const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.CREATE(currentWebsite.id), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(pageData),
+        body: JSON.stringify(backendData),
       })
 
       if (!response.ok) {
@@ -519,13 +526,26 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
 
       const newPage = await response.json()
       
+      // Map backend response to frontend format
+      const mappedPage = {
+        ...newPage,
+        title: pageData.title,
+        description: pageData.description || '',
+        isHomePage: newPage.isHome || false,
+        seo: {
+          title: pageData.title,
+          description: pageData.description || '',
+          keywords: []
+        }
+      }
+      
       set((state) => ({
-        pages: [...state.pages, newPage],
-        currentPage: newPage,
+        pages: [...state.pages, mappedPage],
+        currentPage: mappedPage,
         isLoading: false,
       }))
       
-      return newPage
+      return mappedPage
     } catch (error) {
       set({ isLoading: false })
       throw error

@@ -68,7 +68,6 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               name: 'Home Page',
               slug: 'home',
               title: 'Home Page',
-              description: 'Welcome to your website',
               isHomePage: true
             })
           }
