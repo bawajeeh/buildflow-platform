@@ -33,6 +33,9 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     updateElement,
     deleteElement,
     selectElement,
+    fetchPages,
+    setCurrentPage,
+    createPage
   } = useBuilderStore()
 
   const { currentWebsite, websites, setCurrentWebsite, fetchWebsites } = useWebsiteStore()
@@ -51,9 +54,6 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     }
     loadWebsite()
   }, [websiteId, websites, setCurrentWebsite, fetchWebsites])
-
-  // Load pages when website changes
-  const { fetchPages, currentPage, setCurrentPage, createPage } = useBuilderStore()
   
   useEffect(() => {
     const loadPages = async () => {
