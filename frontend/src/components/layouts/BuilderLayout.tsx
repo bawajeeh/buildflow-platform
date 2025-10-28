@@ -53,24 +53,31 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   }, [websiteId, websites, setCurrentWebsite, fetchWebsites])
 
   // Load pages when website changes
-  const { fetchPages, currentPage, setCurrentPage } = useBuilderStore()
+  const { fetchPages, currentPage, setCurrentPage, createPage } = useBuilderStore()
   
   useEffect(() => {
     const loadPages = async () => {
       if (currentWebsite && (!currentPage || currentPage.websiteId !== currentWebsite.id)) {
         try {
           await fetchPages(currentWebsite.id)
+          // If no pages exist, create a default page
+          const { pages } = useBuilderStore.getState()
+          if (pages.length === 0) {
+            await createPage({
+              name: 'Home Page',
+              slug: 'home',
+              title: 'Home Page',
+              description: 'Welcome to your website',
+              isHomePage: true
+            })
+          }
         } catch (error) {
           console.error('Failed to fetch pages:', error)
-          // If no pages exist, create a default page
-          if (currentWebsite) {
-            // TODO: Create default homepage
-          }
         }
       }
     }
     loadPages()
-  }, [currentWebsite, currentPage, fetchPages])
+  }, [currentWebsite, currentPage, fetchPages, createPage])
 
   // Handle element operations
   const handleAddElement = async (element: Element, parentId?: string) => {
