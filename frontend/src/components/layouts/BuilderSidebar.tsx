@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { cn } from '@/utils'
 import { Website, Page } from '@/types'
 import toast from 'react-hot-toast'
+import { useBuilderStore } from '@/store'
 
 interface BuilderSidebarProps {
   website?: Website | null
@@ -59,6 +60,7 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
 }) => {
   const [isCreatingPage, setIsCreatingPage] = useState(false)
   const [pageName, setPageName] = useState('')
+  const { pages } = useBuilderStore()
 
   const handleCreatePage = async () => {
     if (!pageName.trim()) {
@@ -131,8 +133,37 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
           onChange={(e) => setPageName(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && handleCreatePage()}
           placeholder="Page name..."
-          className="w-full px-2 py-1 text-sm border border-gray-300 rounded"
+          className="w-full px-2 py-1 text-sm border border-gray-300 rounded mb-2"
         />
+        
+        {/* Current Page Display */}
+        {currentPage && (
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+            <div className="font-semibold text-blue-900">Current Page:</div>
+            <div className="text-blue-700">{currentPage.name}</div>
+            <div className="text-blue-500">/{currentPage.slug}</div>
+          </div>
+        )}
+        
+        {/* Pages List */}
+        {pages.length > 0 && (
+          <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+            {pages.map((page) => (
+              <button
+                key={page.id}
+                onClick={() => onPageSelect(page)}
+                className={cn(
+                  'w-full text-left px-2 py-1 text-xs rounded',
+                  currentPage?.id === page.id 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                )}
+              >
+                {page.isHome && '🏠 '}{page.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Elements Section */}
