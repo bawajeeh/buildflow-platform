@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { DragDropProvider } from '@/components/drag-drop/DragDropProvider'
 import { useBuilderStore } from '@/store'
@@ -35,7 +35,19 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     selectElement,
   } = useBuilderStore()
 
-  const { currentWebsite } = useWebsiteStore()
+  const { currentWebsite, websites, setCurrentWebsite, fetchWebsites } = useWebsiteStore()
+
+  // Load website when websiteId changes
+  useEffect(() => {
+    if (websiteId && websites.length > 0) {
+      const website = websites.find(w => w.id === websiteId)
+      if (website) {
+        setCurrentWebsite(website)
+      }
+    } else if (websites.length === 0) {
+      fetchWebsites()
+    }
+  }, [websiteId, websites, setCurrentWebsite, fetchWebsites])
 
   // Handle element operations
   const handleAddElement = async (element: Element, parentId?: string) => {
