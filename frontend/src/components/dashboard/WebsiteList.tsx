@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils'
 import { API_CONFIG } from '@/config/api'
 import toast from 'react-hot-toast'
-import { useAuthStore } from '@/store'
+import { useAuthStore, useWebsiteStore } from '@/store'
 import { Website, WebsiteStatus } from '@/types'
 import { 
   Plus, 
@@ -46,62 +47,15 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
   onCreateNew, 
   className 
 }) => {
-  const [isLoading, setIsLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [selectedWebsites, setSelectedWebsites] = useState<string[]>([])
   const { token } = useAuthStore()
+  const { publishWebsite, unpublishWebsite, deleteWebsite: storeDeleteWebsite, fetchWebsites } = useWebsiteStore()
+  const navigate = useNavigate()
 
-  const handleWebsiteAction = async (websiteId: string, action: string) => {
-    try {
-      let endpoint = ''
-      let method = 'POST'
-      
-      switch (action) {
-        case 'publish':
-          endpoint = `${API_CONFIG.BASE_URL}/api/websites/${websiteId}/publish`
-          break
-        case 'unpublish':
-          endpoint = `${API_CONFIG.BASE_URL}/api/websites/${websiteId}/unpublish`
-          break
-        case 'duplicate':
-          endpoint = `${API_CONFIG.BASE_URL}/api/websites/${websiteId}/duplicate`
-          break
-        case 'delete':
-          endpoint = `${API_CONFIG.BASE_URL}/api/websites/${websiteId}`
-          method = 'DELETE'
-          break
-        default:
-          return
-      }
-
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`Failed to ${action} website`)
-      }
-
-      toast.success(`Website ${action}ed successfully!`)
-      
-      // Refresh websites list
-      if (action === 'delete') {
-        // Remove from local state
-        const updatedWebsites = websites.filter(w => w.id !== websiteId)
-        // TODO: Update parent component state
-      } else {
-        // TODO: Refresh websites list
-      }
-    } catch (error) {
-      console.error(`Error ${action}ing website:`, error)
-      toast.error(`Failed to ${action} website`)
-    }
-  }
+  // Removed handleWebsiteAction - using individual handlers now
 
   const handleViewWebsite = (website: Website) => {
     if (website.status === WebsiteStatus.PUBLISHED && website.subdomain) {
@@ -119,22 +73,33 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
   }
 
   const handleDuplicateWebsite = async (website: Website) => {
-    if (confirm(`Are you sure you want to duplicate "${website.name}"?`)) {
-      await handleWebsiteAction(website.id, 'duplicate')
-    }
+    toast.info('Duplicate feature coming soon')
   }
 
   const handleDeleteWebsite = async (website: Website) => {
-    if (confirm(`Are you sure you want to delete "${website.name}"? This action cannot be undone.`)) {
-      await handleWebsiteAction(website.id, 'delete')
+    if (window.confirm(`Are you sure you want to delete "${website.name}"? This action cannot be undone.`)) {
+      try {
+        await storeDeleteWebsite(website.id)
+        toast.success('Website deleted successfully')
+        fetchWebsites() // Refresh list
+      } catch (error) {
+        toast.error('Failed to delete website')
+      }
     }
   }
 
   const handlePublishWebsite = async (website: Website) => {
-    if (website.status === WebsiteStatus.PUBLISHED) {
-      await handleWebsiteAction(website.id, 'unpublish')
-    } else {
-      await handleWebsiteAction(website.id, 'publish')
+    try {
+      if (website.status === WebsiteStatus.PUBLISHED) {
+        await unpublishWebsite(website.id)
+        toast.success('Website unpublished successfully')
+      } else {
+        await publishWebsite(website.id)
+        toast.success('Website published successfully')
+      }
+      fetchWebsites() // Refresh list
+    } catch (error) {
+      toast.error(`Failed to ${website.status === WebsiteStatus.PUBLISHED ? 'unpublish' : 'publish'} website`)
     }
   }
 
@@ -286,7 +251,7 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
           <CardTitle>Websites ({filteredWebsites.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {false ? (
             <div className={cn(
               viewMode === 'grid' 
                 ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
