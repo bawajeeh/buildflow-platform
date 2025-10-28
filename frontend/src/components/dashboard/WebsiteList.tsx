@@ -104,16 +104,18 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
   }
 
   const handleViewWebsite = (website: Website) => {
-    if (website.status === WebsiteStatus.PUBLISHED && website.domain) {
-      window.open(`https://${website.domain}`, '_blank')
+    if (website.status === WebsiteStatus.PUBLISHED && website.subdomain) {
+      window.open(`https://${website.subdomain}.ain90.online`, '_blank')
+    } else if (website.subdomain) {
+      window.open(`https://${website.subdomain}.ain90.online`, '_blank')
     } else {
-      toast.error('Website is not published yet')
+      toast.error('Website URL not available')
     }
   }
 
   const handleEditWebsite = (website: Website) => {
     onWebsiteSelect(website)
-    // TODO: Navigate to website editor
+    window.location.href = `/builder/${website.id}`
   }
 
   const handleDuplicateWebsite = async (website: Website) => {
