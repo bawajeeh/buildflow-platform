@@ -174,20 +174,26 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             {/* Toolbar */}
             <BuilderToolbar
               selectedElement={selectedElement}
-              onUndo={() => {
-                // Handle undo
-              }}
-              onRedo={() => {
-                // Handle redo
-              }}
-              onSave={() => {
-                // Handle save
+              onUndo={() => toast.info('Undo coming soon')}
+              onRedo={() => toast.info('Redo coming soon')}
+              onSave={async () => {
+                if (!currentPage) {
+                  toast.error('No page to save')
+                  return
+                }
+                try {
+                  await updateElement('current-page', {})
+                  toast.success('Draft saved!')
+                } catch (error) {
+                  toast.error('Failed to save')
+                }
               }}
               onPreview={() => {
-                // Handle preview
+                if (!currentWebsite) return
+                window.open(`https://${currentWebsite.subdomain}.ain90.online`, '_blank')
               }}
-              onPublish={() => {
-                // Handle publish
+              onPublish={async () => {
+                toast.success('Publish coming soon!')
               }}
             />
 
@@ -215,6 +221,11 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         {/* Responsive Indicator */}
         <ResponsiveIndicator mode={responsiveMode} />
       </div>
+    </DragDropProvider>
+  )
+}
+
+export default BuilderLayout
     </DragDropProvider>
   )
 }
