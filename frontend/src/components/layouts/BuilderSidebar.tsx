@@ -41,12 +41,12 @@ const ElementDraggable: React.FC<ElementDraggableProps> = ({ element }) => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       className={cn(
-        'flex items-center space-x-2 p-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md cursor-grab active:cursor-grabbing select-none',
-        isDragging && 'opacity-50'
+        'flex flex-col items-center justify-center p-3 text-xs text-gray-700 hover:bg-blue-50 border-2 border-gray-200 hover:border-blue-400 rounded-lg cursor-grab active:cursor-grabbing select-none transition-all duration-200 bg-white shadow-sm hover:shadow-md transform hover:scale-105',
+        isDragging && 'opacity-50 scale-95'
       )}
     >
-      <span>{element.icon}</span>
-      <span>{element.name}</span>
+      <span className="text-2xl mb-1">{element.icon}</span>
+      <span className="font-semibold text-center">{element.name}</span>
     </div>
   )
 }
@@ -116,68 +116,90 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
   ]
 
   return (
-    <div className={cn('w-64 bg-white border-r border-gray-200 overflow-y-auto flex flex-col', className)}>
+    <div className={cn('w-72 bg-gradient-to-br from-gray-50 to-white border-r border-gray-300 overflow-hidden flex flex-col shadow-lg', className)}>
       {/* Pages Section */}
-      <div className="p-4 border-b">
+      <div className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-gray-900">Pages</h2>
+          <h2 className="text-base font-bold flex items-center gap-2">
+            📄 Pages
+          </h2>
           <button
             onClick={handleCreatePage}
             disabled={isCreatingPage}
-            className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            className="px-3 py-1.5 text-xs bg-white text-blue-600 rounded-md hover:bg-blue-50 disabled:opacity-50 font-semibold shadow-md transition-all"
           >
-            {isCreatingPage ? '...' : '+ New'}
+            {isCreatingPage ? '⏳ Creating...' : '+ New Page'}
           </button>
         </div>
-        <input
-          type="text"
-          value={pageName}
-          onChange={(e) => setPageName(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleCreatePage()}
-          placeholder="Page name..."
-          className="w-full px-2 py-1 text-sm border border-gray-300 rounded mb-2"
-        />
+        
+        {/* Create Page Input */}
+        <div className="relative mb-3">
+          <input
+            type="text"
+            value={pageName}
+            onChange={(e) => setPageName(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleCreatePage()}
+            placeholder="Enter page name..."
+            className="w-full px-3 py-2 text-sm bg-white/90 border border-white/50 rounded-md text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all"
+          />
+        </div>
         
         {/* Current Page Display */}
         {currentPage && (
-          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
-            <div className="font-semibold text-blue-900">Current Page:</div>
-            <div className="text-blue-700">{currentPage.name}</div>
-            <div className="text-blue-500">/{currentPage.slug}</div>
+          <div className="p-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg">
+            <div className="text-xs font-semibold text-white/90 mb-1">Current Page</div>
+            <div className="text-sm font-bold">{currentPage.name}</div>
+            <div className="text-xs text-white/70">/{currentPage.slug}</div>
           </div>
         )}
-        
-        {/* Pages List */}
-        {pages.length > 0 && (
-          <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
-            {pages.map((page) => (
-              <button
-                key={page.id}
-                onClick={() => onPageSelect(page)}
-                className={cn(
-                  'w-full text-left px-2 py-1 text-xs rounded',
-                  currentPage?.id === page.id 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                )}
-              >
-                {page.isHome && '🏠 '}{page.name}
-              </button>
-            ))}
+      </div>
+      
+      {/* Pages List */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+        {pages.length > 0 ? (
+          pages.map((page) => (
+            <button
+              key={page.id}
+              onClick={() => onPageSelect(page)}
+              className={cn(
+                'w-full text-left px-3 py-2.5 rounded-lg transition-all duration-200 flex items-center gap-2',
+                currentPage?.id === page.id
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg transform scale-105'
+                  : 'bg-white border border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md'
+              )}
+            >
+              <span className="text-lg">{page.isHome ? '🏠' : '📄'}</span>
+              <span className="text-sm font-medium">{page.name}</span>
+            </button>
+          ))
+        ) : (
+          <div className="text-center py-8 text-gray-400 text-sm">
+            <div className="text-3xl mb-2">📄</div>
+            <p>No pages yet</p>
           </div>
         )}
       </div>
 
       {/* Elements Section */}
-      <div className="p-4 flex-1 overflow-y-auto">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Elements</h2>
+      <div className="p-4 bg-white border-t border-gray-200 flex-1 overflow-y-auto">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+            🎨 Elements
+          </h2>
+          <div className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-semibold">
+            {elementCategories.reduce((acc, cat) => acc + cat.elements.length, 0)} total
+          </div>
+        </div>
         
         {elementCategories.map((category) => (
-          <div key={category.name} className="mb-6">
-            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-              {category.name}
-            </h3>
-            <div className="space-y-1">
+          <div key={category.name} className="mb-5 bg-gradient-to-br from-gray-50 to-white p-3 rounded-lg border border-gray-200">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1 h-4 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
+              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                {category.name}
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
               {category.elements.map((element) => (
                 <ElementDraggable key={element.type} element={element} />
               ))}
