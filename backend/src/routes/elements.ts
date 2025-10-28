@@ -10,8 +10,18 @@ router.get('/page/:pageId', async (req, res) => {
       where: { pageId: req.params.pageId },
       orderBy: { order: 'asc' },
     })
-    res.json(elements)
+    
+    // Parse JSON fields for response
+    const parsedElements = elements.map(el => ({
+      ...el,
+      props: JSON.parse(el.props),
+      styles: JSON.parse(el.styles),
+      responsive: JSON.parse(el.responsive),
+    }))
+    
+    res.json(parsedElements)
   } catch (error) {
+    console.error('Failed to fetch elements:', error)
     res.status(500).json({ error: 'Failed to fetch elements' })
   }
 })
@@ -31,8 +41,30 @@ router.get('/:id', async (req, res) => {
     if (!element) {
       return res.status(404).json({ error: 'Element not found' })
     }
-    res.json(element)
+    
+    // Parse JSON fields for response
+    const parsedElement = {
+      ...element,
+      props: JSON.parse(element.props),
+      styles: JSON.parse(element.styles),
+      responsive: JSON.parse(element.responsive),
+      children: element.children?.map(child => ({
+        ...child,
+        props: JSON.parse(child.props),
+        styles: JSON.parse(child.styles),
+        responsive: JSON.parse(child.responsive),
+      })),
+      parent: element.parent ? {
+        ...element.parent,
+        props: JSON.parse(element.parent.props),
+        styles: JSON.parse(element.parent.styles),
+        responsive: JSON.parse(element.parent.responsive),
+      } : null,
+    }
+    
+    res.json(parsedElement)
   } catch (error) {
+    console.error('Failed to fetch element:', error)
     res.status(500).json({ error: 'Failed to fetch element' })
   }
 })
@@ -55,8 +87,17 @@ router.post('/', async (req, res) => {
       },
     })
     
-    res.status(201).json(element)
+    // Parse JSON fields for response
+    const parsedElement = {
+      ...element,
+      props: JSON.parse(element.props),
+      styles: JSON.parse(element.styles),
+      responsive: JSON.parse(element.responsive),
+    }
+    
+    res.status(201).json(parsedElement)
   } catch (error) {
+    console.error('Failed to create element:', error)
     res.status(500).json({ error: 'Failed to create element' })
   }
 })
@@ -77,8 +118,17 @@ router.put('/:id', async (req, res) => {
       },
     })
     
-    res.json(element)
+    // Parse JSON fields for response
+    const parsedElement = {
+      ...element,
+      props: JSON.parse(element.props),
+      styles: JSON.parse(element.styles),
+      responsive: JSON.parse(element.responsive),
+    }
+    
+    res.json(parsedElement)
   } catch (error) {
+    console.error('Failed to update element:', error)
     res.status(500).json({ error: 'Failed to update element' })
   }
 })
