@@ -32,11 +32,16 @@ const BuilderProperties: React.FC<BuilderPropertiesProps> = ({
 
   if (!selectedElement) {
     return (
-      <div className={cn('w-80 bg-white border-l border-gray-200 p-4', className)}>
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Properties</h3>
-        <p className="text-sm text-gray-500 text-center py-8">
-          Select an element to edit its properties
-        </p>
+      <div className={cn('w-80 bg-gradient-to-br from-gray-50 to-white border-l border-gray-300 p-4', className)}>
+        <div className="flex items-center gap-2 mb-4">
+          <h3 className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Properties</h3>
+          <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent"></div>
+        </div>
+        <div className="text-center py-12 bg-white rounded-lg border-2 border-dashed border-gray-300">
+          <div className="text-5xl mb-3">🎯</div>
+          <p className="text-sm font-semibold text-gray-700 mb-1">Select an element</p>
+          <p className="text-xs text-gray-500">Click on any element to edit its properties</p>
+        </div>
       </div>
     )
   }
@@ -58,15 +63,15 @@ const BuilderProperties: React.FC<BuilderPropertiesProps> = ({
   }
 
   return (
-    <div className={cn('w-80 bg-white border-l border-gray-200 overflow-y-auto', className)}>
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Properties</h3>
-          <div className="flex items-center space-x-2">
+    <div className={cn('w-80 bg-gradient-to-br from-gray-50 to-white border-l border-gray-300 overflow-y-auto shadow-lg', className)}>
+      <div className="p-4 sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white z-10">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold">⚙️ Properties</h3>
+          <div className="flex items-center space-x-1">
             {onCopy && (
               <button
                 onClick={onCopy}
-                className="px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
+                className="p-1.5 bg-white/20 hover:bg-white/30 rounded transition-all"
                 title="Copy (Ctrl+C)"
               >
                 📋
@@ -75,7 +80,7 @@ const BuilderProperties: React.FC<BuilderPropertiesProps> = ({
             {onDuplicate && (
               <button
                 onClick={onDuplicate}
-                className="px-2 py-1 text-sm text-green-600 hover:bg-green-50 rounded"
+                className="p-1.5 bg-white/20 hover:bg-white/30 rounded transition-all"
                 title="Duplicate"
               >
                 📄
@@ -84,7 +89,7 @@ const BuilderProperties: React.FC<BuilderPropertiesProps> = ({
             {onPaste && (
               <button
                 onClick={onPaste}
-                className="px-2 py-1 text-sm text-purple-600 hover:bg-purple-50 rounded"
+                className="p-1.5 bg-white/20 hover:bg-white/30 rounded transition-all"
                 title="Paste (Ctrl+V)"
               >
                 📥
@@ -92,20 +97,27 @@ const BuilderProperties: React.FC<BuilderPropertiesProps> = ({
             )}
             <button
               onClick={handleDelete}
-              className="px-2 py-1 text-sm text-red-600 hover:bg-red-50 rounded"
+              className="p-1.5 bg-red-500 hover:bg-red-600 rounded transition-all"
               title="Delete (Del)"
             >
               🗑️
             </button>
           </div>
         </div>
+        <div className="mt-2 text-xs text-white/80">
+          {selectedElement.type} • {selectedElement.name}
+        </div>
+      </div>
+      
+      <div className="p-4">
+        <div className="mb-4 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
         
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Element Type
-            </label>
-            <p className="text-sm text-gray-500 capitalize">{selectedElement.type}</p>
+        <div className="space-y-3">
+          <div className="p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded border border-blue-200">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-gray-600">Element Type</span>
+              <span className="text-xs font-semibold text-blue-700 uppercase">{selectedElement.type}</span>
+            </div>
           </div>
         
           {/* Element-Specific Properties */}
