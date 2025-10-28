@@ -176,8 +176,86 @@ const BuilderProperties: React.FC<BuilderPropertiesProps> = ({
             </div>
           )}
 
+          {selectedElement.type === 'FORM' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Form Action
+              </label>
+              <input
+                type="text"
+                value={localProps.action || ''}
+                onChange={(e) => setLocalProps({ ...localProps, action: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                placeholder="/submit"
+              />
+              <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
+                Method
+              </label>
+              <select
+                value={localProps.method || 'POST'}
+                onChange={(e) => setLocalProps({ ...localProps, method: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              >
+                <option value="POST">POST</option>
+                <option value="GET">GET</option>
+              </select>
+              <button
+                onClick={handleUpdate}
+                className="mt-2 w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Update
+              </button>
+            </div>
+          )}
+
+          {selectedElement.type === 'INPUT' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Input Type
+              </label>
+              <select
+                value={localProps.type || 'text'}
+                onChange={(e) => setLocalProps({ ...localProps, type: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              >
+                <option value="text">Text</option>
+                <option value="email">Email</option>
+                <option value="password">Password</option>
+                <option value="number">Number</option>
+                <option value="tel">Phone</option>
+                <option value="url">URL</option>
+              </select>
+              <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
+                Placeholder
+              </label>
+              <input
+                type="text"
+                value={localProps.placeholder || ''}
+                onChange={(e) => setLocalProps({ ...localProps, placeholder: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                placeholder="Enter placeholder..."
+              />
+              <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
+                Name
+              </label>
+              <input
+                type="text"
+                value={localProps.name || ''}
+                onChange={(e) => setLocalProps({ ...localProps, name: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                placeholder="field_name"
+              />
+              <button
+                onClick={handleUpdate}
+                className="mt-2 w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Update
+              </button>
+            </div>
+          )}
+
           {/* Default case for other elements */}
-          {!['TEXT', 'HEADING', 'BUTTON', 'IMAGE'].includes(selectedElement.type) && (
+          {!['TEXT', 'HEADING', 'BUTTON', 'IMAGE', 'FORM', 'INPUT'].includes(selectedElement.type) && (
             <div className="text-center py-4 text-gray-500 text-sm">
               Element properties coming soon
             </div>
