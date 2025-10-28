@@ -118,7 +118,9 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
       onMouseLeave: handleMouseLeave,
     }
 
-    switch (element.type) {
+    const normalizedType = element.type.toUpperCase()
+    
+    switch (normalizedType) {
       case 'SECTION':
         return <SectionElement {...elementProps} />
       case 'CONTAINER':
@@ -190,7 +192,7 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
       default:
         return (
           <div className="p-4 border border-dashed border-muted-foreground/50 rounded-lg text-center text-muted-foreground">
-            Unknown element type: {element.type}
+            Unknown element type: {element.type} (normalized: {normalizedType})
           </div>
         )
     }
