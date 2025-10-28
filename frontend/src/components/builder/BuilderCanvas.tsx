@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Page, Element } from '@/types'
 import { useBuilderStore } from '@/store'
+import toast from 'react-hot-toast'
 
 // Components
 import ElementRenderer from './ElementRenderer'
@@ -69,6 +70,32 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
     )
   }, [selectedElement, hoveredElement, responsiveMode, handleElementClick, handleElementHover])
 
+  // Handle drop event
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault()
+    const data = e.dataTransfer.getData('application/json')
+    if (data) {
+      try {
+        const elementData = JSON.parse(data)
+        const newElement: Element = {
+          id: `element-${Date.now()}`,
+          type: elementData.type as any,
+          name: elementData.name,
+          props: {},
+          styles: {},
+          order: sortedElements.length,
+          isVisible: true,
+          responsive: {},
+        }
+        await addElement(newElement)
+        toast.success(`${elementData.name} added successfully`)
+      } catch (error) {
+        console.error('Failed to add element:', error)
+        toast.error('Failed to add element')
+      }
+    }
+  }, [addElement, sortedElements.length])
+
   // Render empty state if no elements
   if (!page || sortedElements.length === 0) {
     return (
@@ -79,15 +106,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         }`}
         onClick={handleCanvasClick}
         onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => {
-          e.preventDefault()
-          const data = e.dataTransfer.getData('application/json')
-          if (data) {
-            const element = JSON.parse(data)
-            console.log('Dropped element:', element)
-            // TODO: Add element to page
-          }
-        }}
+        onDrop={handleDrop}
       >
         {isPageOver && (
           <div className="text-center py-12">
@@ -107,6 +126,8 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         isPageOver ? 'bg-primary/5' : 'bg-background'
       }`}
       onClick={handleCanvasClick}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={handleDrop}
     >
       <SortableContext
         items={sortedElements.map(el => el.id)}
