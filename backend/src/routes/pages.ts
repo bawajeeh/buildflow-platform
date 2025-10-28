@@ -14,8 +14,21 @@ router.get('/:websiteId/pages', async (req, res) => {
         },
       },
     })
-    res.json(pages)
+    
+    // Parse JSON fields for elements
+    const parsedPages = pages.map(page => ({
+      ...page,
+      elements: page.elements.map(el => ({
+        ...el,
+        props: JSON.parse(el.props),
+        styles: JSON.parse(el.styles),
+        responsive: JSON.parse(el.responsive),
+      })),
+    }))
+    
+    res.json(parsedPages)
   } catch (error) {
+    console.error('Failed to fetch pages:', error)
     res.status(500).json({ error: 'Failed to fetch pages' })
   }
 })
@@ -74,8 +87,21 @@ router.get('/:id', async (req, res) => {
     if (!page) {
       return res.status(404).json({ error: 'Page not found' })
     }
-    res.json(page)
+    
+    // Parse JSON fields for elements
+    const parsedPage = {
+      ...page,
+      elements: page.elements.map(el => ({
+        ...el,
+        props: JSON.parse(el.props),
+        styles: JSON.parse(el.styles),
+        responsive: JSON.parse(el.responsive),
+      })),
+    }
+    
+    res.json(parsedPage)
   } catch (error) {
+    console.error('Failed to fetch page:', error)
     res.status(500).json({ error: 'Failed to fetch page' })
   }
 })
