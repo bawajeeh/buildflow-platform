@@ -208,15 +208,17 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         <div className="flex-1 flex overflow-hidden">
           {/* Left Sidebar */}
           {isSidebarOpen && (
-            <BuilderSidebar
-              website={currentWebsite}
-              currentPage={currentPage}
-              onPageSelect={setCurrentPage}
-              onPageCreate={async (pageData) => {
-                const newPage = await createPage(pageData)
-                setCurrentPage(newPage)
-              }}
-            />
+            <div className="slide-in-left">
+              <BuilderSidebar
+                website={currentWebsite}
+                currentPage={currentPage}
+                onPageSelect={setCurrentPage}
+                onPageCreate={async (pageData) => {
+                  const newPage = await createPage(pageData)
+                  setCurrentPage(newPage)
+                }}
+              />
+            </div>
           )}
 
           {/* Canvas Area */}
@@ -259,7 +261,7 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           </div>
 
           {/* Right Side Panels */}
-          <div className="flex">
+          <div className="flex slide-in-right">
             {/* Layers Panel Toggle */}
             {isLayersOpen && (
               <BuilderLayersPanel
