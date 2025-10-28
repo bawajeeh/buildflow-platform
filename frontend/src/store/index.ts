@@ -526,8 +526,6 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
       }))
       
       return newPage
-
-      return data.page
     } catch (error) {
       set({ isLoading: false })
       throw error
