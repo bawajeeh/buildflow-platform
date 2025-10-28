@@ -517,12 +517,15 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         throw new Error('Failed to create page')
       }
 
-      const data = await response.json()
+      const newPage = await response.json()
       
       set((state) => ({
-        pages: [...state.pages, data.page],
+        pages: [...state.pages, newPage],
+        currentPage: newPage,
         isLoading: false,
       }))
+      
+      return newPage
 
       return data.page
     } catch (error) {
