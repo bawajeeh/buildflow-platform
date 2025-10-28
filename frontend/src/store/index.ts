@@ -488,7 +488,13 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     }
   },
 
-  createPage: async (pageData) => {
+  createPage: async (pageData: {
+    name: string
+    slug: string
+    title: string
+    description?: string
+    isHomePage?: boolean
+  }) => {
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
@@ -498,7 +504,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         throw new Error('No website selected')
       }
 
-      const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.LIST(currentWebsite.id), {
+      const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.CREATE(currentWebsite.id), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
