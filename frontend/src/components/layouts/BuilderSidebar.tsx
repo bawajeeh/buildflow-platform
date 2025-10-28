@@ -87,28 +87,28 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
     {
       name: 'Layout',
       elements: [
-        { name: 'Section', icon: '📦', type: 'section' },
-        { name: 'Container', icon: '📋', type: 'container' },
-        { name: 'Row', icon: '📐', type: 'row' },
-        { name: 'Column', icon: '📊', type: 'column' }
+        { name: 'Section', icon: '📦', type: 'SECTION' },
+        { name: 'Container', icon: '📋', type: 'CONTAINER' },
+        { name: 'Row', icon: '📐', type: 'ROW' },
+        { name: 'Column', icon: '📊', type: 'COLUMN' }
       ]
     },
     {
       name: 'Content',
       elements: [
-        { name: 'Text', icon: '📝', type: 'text' },
-        { name: 'Heading', icon: '📰', type: 'heading' },
-        { name: 'Image', icon: '🖼️', type: 'image' },
-        { name: 'Button', icon: '🔘', type: 'button' }
+        { name: 'Text', icon: '📝', type: 'TEXT' },
+        { name: 'Heading', icon: '📰', type: 'HEADING' },
+        { name: 'Image', icon: '🖼️', type: 'IMAGE' },
+        { name: 'Button', icon: '🔘', type: 'BUTTON' }
       ]
     },
     {
       name: 'Forms',
       elements: [
-        { name: 'Form', icon: '📋', type: 'form' },
-        { name: 'Input', icon: '📝', type: 'input' },
-        { name: 'Select', icon: '📋', type: 'select' },
-        { name: 'Checkbox', icon: '☑️', type: 'checkbox' }
+        { name: 'Form', icon: '📋', type: 'FORM' },
+        { name: 'Input', icon: '📝', type: 'INPUT' },
+        { name: 'Select', icon: '📋', type: 'SELECT' },
+        { name: 'Checkbox', icon: '☑️', type: 'CHECKBOX' }
       ]
     }
   ]
