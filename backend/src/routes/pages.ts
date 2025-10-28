@@ -30,8 +30,6 @@ router.post('/:websiteId/pages', async (req, res) => {
         websiteId: req.params.websiteId,
         name,
         slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
-        title: title || name,
-        description: description || '',
         isHome: isHomePage || false,
         isPublished: false,
       },
@@ -40,7 +38,7 @@ router.post('/:websiteId/pages', async (req, res) => {
     res.status(201).json(page)
   } catch (error) {
     console.error('Failed to create page:', error)
-    res.status(500).json({ error: 'Failed to create page' })
+    res.status(500).json({ error: error.message || 'Failed to create page' })
   }
 })
 
