@@ -7,6 +7,9 @@ interface BuilderPropertiesProps {
   selectedElement: Element | null
   onUpdateElement: (elementId: string, updates: Partial<Element>) => void
   onDeleteElement: (elementId: string) => void
+  onCopy?: () => void
+  onDuplicate?: () => void
+  onPaste?: () => void
   className?: string
 }
 
@@ -14,6 +17,9 @@ const BuilderProperties: React.FC<BuilderPropertiesProps> = ({
   selectedElement,
   onUpdateElement,
   onDeleteElement,
+  onCopy,
+  onDuplicate,
+  onPaste,
   className 
 }) => {
   const [localProps, setLocalProps] = useState<any>(selectedElement?.props || {})
@@ -56,12 +62,42 @@ const BuilderProperties: React.FC<BuilderPropertiesProps> = ({
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-medium text-gray-900">Properties</h3>
-          <button
-            onClick={handleDelete}
-            className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded"
-          >
-            Delete
-          </button>
+          <div className="flex items-center space-x-2">
+            {onCopy && (
+              <button
+                onClick={onCopy}
+                className="px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
+                title="Copy (Ctrl+C)"
+              >
+                📋
+              </button>
+            )}
+            {onDuplicate && (
+              <button
+                onClick={onDuplicate}
+                className="px-2 py-1 text-sm text-green-600 hover:bg-green-50 rounded"
+                title="Duplicate"
+              >
+                📄
+              </button>
+            )}
+            {onPaste && (
+              <button
+                onClick={onPaste}
+                className="px-2 py-1 text-sm text-purple-600 hover:bg-purple-50 rounded"
+                title="Paste (Ctrl+V)"
+              >
+                📥
+              </button>
+            )}
+            <button
+              onClick={handleDelete}
+              className="px-2 py-1 text-sm text-red-600 hover:bg-red-50 rounded"
+              title="Delete (Del)"
+            >
+              🗑️
+            </button>
+          </div>
         </div>
         
         <div className="space-y-4">

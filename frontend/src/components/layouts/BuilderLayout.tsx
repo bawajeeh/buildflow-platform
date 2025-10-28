@@ -48,6 +48,49 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   const { currentWebsite, websites, setCurrentWebsite, fetchWebsites } = useWebsiteStore()
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Z for undo
+      if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+      }
+      
+      // Ctrl+Shift+Z or Ctrl+Y for redo
+      if ((e.ctrlKey && e.shiftKey && e.key === 'z') || (e.ctrlKey && e.key === 'y')) {
+        e.preventDefault()
+        redo()
+      }
+      
+      // Ctrl+C for copy
+      if (e.ctrlKey && e.key === 'c' && selectedElement) {
+        e.preventDefault()
+        copyElement(selectedElement.id)
+      }
+      
+      // Ctrl+V for paste
+      if (e.ctrlKey && e.key === 'v') {
+        e.preventDefault()
+        pasteElement()
+      }
+      
+      // Delete key
+      if (e.key === 'Delete' && selectedElement) {
+        e.preventDefault()
+        handleDeleteElement(selectedElement.id)
+      }
+      
+      // Escape to deselect
+      if (e.key === 'Escape') {
+        selectElement(null)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedElement, undo, redo, copyElement, pasteElement, handleDeleteElement, selectElement])
+
   // Load website when websiteId changes
   useEffect(() => {
     const loadWebsite = async () => {
