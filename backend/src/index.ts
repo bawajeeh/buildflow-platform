@@ -69,10 +69,11 @@ initializeDatabaseTables()
 app.use(helmet())
 app.use(cors({
   origin: [
+    'https://ain90.online',
+    'https://www.ain90.online',
     'https://buildflow-platform-frontend.vercel.app',
     'https://buildflow-platform-frontend-tmbq.vercel.app',
-    'https://buildflow-platform-frontend-3bfn.vercel.app', // Added new Vercel domain
-    'https://buildflow-platform-1.onrender.com',
+    'https://buildflow-platform-frontend-3bfn.vercel.app',
     'http://localhost:3000',
     'http://localhost:3001'
   ],
