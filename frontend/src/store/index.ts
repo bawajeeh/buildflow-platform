@@ -599,39 +599,68 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
   addElement: async (element: Element, parentId?: string) => {
     set({ isLoading: true })
     try {
-      const { token } = useAuthStore.getState()
       const { currentPage } = get()
       
       if (!currentPage) {
         throw new Error('No page selected')
       }
 
-      const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.LIST(currentPage.id), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ ...element, parentId }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to add element')
+      // Add element immediately to page (optimistic update)
+      const tempId = `temp-${Date.now()}`
+      const newElement: Element = { 
+        ...element, 
+        id: tempId,
+        pageId: currentPage.id,
+        parentId,
       }
-
-      const data = await response.json()
       
+      // Update store with new element
       set((state) => ({
         pages: state.pages.map((page) =>
           page.id === currentPage.id
-            ? { ...page, elements: [...page.elements, data.element] }
+            ? { ...page, elements: [...(page.elements || []), newElement] }
             : page
         ),
-        currentPage: state.currentPage?.id === currentPage.id
-          ? { ...state.currentPage, elements: [...state.currentPage.elements, data.element] }
-          : state.currentPage,
+        currentPage: state.currentPage ? {
+          ...state.currentPage,
+          elements: [...(state.currentPage.elements || []), newElement]
+        } : null,
         isLoading: false,
       }))
+
+      // Try to save to backend in background (optional)
+      try {
+        const { token } = useAuthStore.getState()
+        const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.LIST(currentPage.id), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify(newElement),
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          // Update with real ID from backend
+          set((state) => ({
+            pages: state.pages.map((page) => ({
+              ...page,
+              elements: page.elements.map((el) => 
+                el.id === tempId ? data : el
+              ),
+            })),
+            currentPage: state.currentPage ? {
+              ...state.currentPage,
+              elements: state.currentPage.elements.map((el) => 
+                el.id === tempId ? data : el
+              ),
+            } : null,
+          }))
+        }
+      } catch (backendError) {
+        console.log('Backend save failed, element still in canvas:', backendError)
+      }
     } catch (error) {
       set({ isLoading: false })
       throw error
