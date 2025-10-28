@@ -374,7 +374,7 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
                     <div className="mb-3">
                       <h4 className="text-sm font-medium text-gray-900 mb-1">{website.name}</h4>
                       <p className="text-xs text-gray-500 mb-2">
-                        {website.domain ? website.domain : `${website.subdomain}.buildflow.app`}
+                        {website.domain ? website.domain : `${website.subdomain}.ain90.online`}
                       </p>
                       <div className="flex items-center gap-2 text-xs text-gray-500">
                         <Calendar className="w-3 h-3" />
@@ -413,7 +413,7 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
                           {getStatusBadge(website.status)}
                         </div>
                         <p className="text-xs text-gray-500 mb-1">
-                          {website.domain ? website.domain : `${website.subdomain}.buildflow.app`}
+                          {website.domain ? website.domain : `${website.subdomain}.ain90.online`}
                         </p>
                         <div className="flex items-center gap-3 text-xs text-gray-500">
                           <div className="flex items-center">

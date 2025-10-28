@@ -48,7 +48,7 @@ class EmailService {
         <p>Hi ${firstName},</p>
         <p>Welcome to BuildFlow! We're excited to have you on board.</p>
         <p>You can now start building amazing websites with our drag & drop builder.</p>
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}" 
+        <a href="${process.env.FRONTEND_URL || 'https://www.ain90.online'}" 
            style="background-color: #3b82f6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
           Get Started
         </a>
@@ -64,7 +64,7 @@ class EmailService {
   }
 
   async sendPasswordResetEmail(userEmail: string, resetToken: string): Promise<boolean> {
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`
+    const resetUrl = `${process.env.FRONTEND_URL || 'https://www.ain90.online'}/reset-password?token=${resetToken}`
     
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
