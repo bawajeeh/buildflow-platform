@@ -433,6 +433,9 @@ interface BuilderState {
   hoveredElement: Element | null
   isPreviewMode: boolean
   isLoading: boolean
+  history: Element[][] // For undo/redo
+  historyIndex: number // Current position in history
+  clipboard: Element | null // For copy/paste
   fetchPages: (websiteId: string) => Promise<void>
   createPage: (pageData: {
     name: string
@@ -452,6 +455,12 @@ interface BuilderState {
   hoverElement: (element: Element | null) => void
   togglePreviewMode: () => void
   saveLayout: () => Promise<void>
+  duplicateElement: (elementId: string) => Promise<void>
+  copyElement: (elementId: string) => void
+  pasteElement: () => Promise<void>
+  undo: () => void
+  redo: () => void
+  searchElements: (query: string) => Element[]
 }
 
 export const useBuilderStore = create<BuilderState>()((set, get) => ({
@@ -461,6 +470,9 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
   hoveredElement: null,
   isPreviewMode: false,
   isLoading: false,
+  history: [],
+  historyIndex: -1,
+  clipboard: null,
 
   fetchPages: async (websiteId: string) => {
     set({ isLoading: true })
@@ -840,5 +852,96 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
       set({ isLoading: false })
       throw error
     }
+  },
+
+  // Advanced Features
+  
+  // Duplicate element
+  duplicateElement: async (elementId: string) => {
+    const { currentPage } = get()
+    if (!currentPage) throw new Error('No page selected')
+    
+    const element = currentPage.elements.find(el => el.id === elementId)
+    if (!element) throw new Error('Element not found')
+    
+    const duplicatedElement: Element = {
+      ...element,
+      id: `element-${Date.now()}`,
+      name: `${element.name} (Copy)`,
+    }
+    
+    await addElement(duplicatedElement, element.parentId)
+    toast.success('Element duplicated!')
+  },
+
+  // Copy element
+  copyElement: (elementId: string) => {
+    const { currentPage } = get()
+    if (!currentPage) return
+    
+    const element = currentPage.elements.find(el => el.id === elementId)
+    if (element) {
+      set({ clipboard: { ...element } })
+      toast.success('Element copied!')
+    }
+  },
+
+  // Paste element
+  pasteElement: async () => {
+    const { clipboard, currentPage } = get()
+    if (!clipboard || !currentPage) return
+    
+    const pastedElement: Element = {
+      ...clipboard,
+      id: `element-${Date.now()}`,
+      name: `${clipboard.name} (Pasted)`,
+    }
+    
+    await addElement(pastedElement, clipboard.parentId)
+    toast.success('Element pasted!')
+  },
+
+  // Undo
+  undo: () => {
+    const { history, historyIndex, currentPage } = get()
+    if (historyIndex <= 0 || !currentPage) {
+      toast.info('Nothing to undo')
+      return
+    }
+    
+    const previousElements = history[historyIndex - 1]
+    set({
+      currentPage: { ...currentPage, elements: previousElements },
+      historyIndex: historyIndex - 1,
+    })
+    toast.success('Undone!')
+  },
+
+  // Redo
+  redo: () => {
+    const { history, historyIndex, currentPage } = get()
+    if (historyIndex >= history.length - 1 || !currentPage) {
+      toast.info('Nothing to redo')
+      return
+    }
+    
+    const nextElements = history[historyIndex + 1]
+    set({
+      currentPage: { ...currentPage, elements: nextElements },
+      historyIndex: historyIndex + 1,
+    })
+    toast.success('Redone!')
+  },
+
+  // Search elements
+  searchElements: (query: string) => {
+    const { currentPage } = get()
+    if (!currentPage) return []
+    
+    const lowerQuery = query.toLowerCase()
+    return currentPage.elements.filter(el => 
+      el.name.toLowerCase().includes(lowerQuery) ||
+      el.type.toLowerCase().includes(lowerQuery)
+    )
   },
 }))
