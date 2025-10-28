@@ -476,10 +476,10 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         throw new Error('Failed to fetch pages')
       }
 
-      const data = await response.json()
+      const pages = await response.json()
       
       set({
-        pages: data.pages,
+        pages: Array.isArray(pages) ? pages : [],
         isLoading: false,
       })
     } catch (error) {
