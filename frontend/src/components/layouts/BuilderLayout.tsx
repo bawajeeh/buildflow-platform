@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { DragDropProvider } from '@/components/drag-drop/DragDropProvider'
 import { useBuilderStore } from '@/store'
 import { useWebsiteStore } from '@/store'
+import toast from 'react-hot-toast'
 
 // Layout Components
 import BuilderHeader from './BuilderHeader'
@@ -221,11 +222,6 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         {/* Responsive Indicator */}
         <ResponsiveIndicator mode={responsiveMode} />
       </div>
-    </DragDropProvider>
-  )
-}
-
-export default BuilderLayout
     </DragDropProvider>
   )
 }
