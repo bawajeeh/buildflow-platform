@@ -73,27 +73,29 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   // Handle drop event
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault()
-    const data = e.dataTransfer.getData('application/json')
-    if (data) {
-      try {
-        const elementData = JSON.parse(data)
-        const newElement: Element = {
-          id: `element-${Date.now()}`,
-          type: elementData.type as any,
-          name: elementData.name,
-          props: {},
-          styles: {},
-          order: sortedElements.length,
-          isVisible: true,
-          responsive: {},
+      const data = e.dataTransfer.getData('application/json')
+      if (data) {
+        try {
+          const elementData = JSON.parse(data)
+          const newElement: Element = {
+            id: `element-${Date.now()}`,
+            type: elementData.type.toUpperCase() as any, // Ensure type is uppercase
+            name: elementData.name,
+            props: {},
+            styles: {},
+            order: sortedElements.length,
+            isVisible: true,
+            responsive: {},
+            pageId: page?.id, // Add pageId from current page
+            parentId: undefined, // No parent initially
+          }
+          await addElement(newElement)
+          toast.success(`${elementData.name} added successfully`)
+        } catch (error) {
+          console.error('Failed to add element:', error)
+          toast.error('Failed to add element')
         }
-        await addElement(newElement)
-        toast.success(`${elementData.name} added successfully`)
-      } catch (error) {
-        console.error('Failed to add element:', error)
-        toast.error('Failed to add element')
       }
-    }
   }, [addElement, sortedElements.length])
 
   // Render empty state if no elements
