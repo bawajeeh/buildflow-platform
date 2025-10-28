@@ -352,19 +352,32 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="flex-1"
                         onClick={() => handleViewWebsite(website)}
                       >
-                        <Eye className="w-3 h-3 mr-1" />
-                        View
+                        <Eye className="w-3 h-3" />
                       </Button>
                       <Button 
+                        variant="outline" 
                         size="sm" 
-                        className="flex-1"
                         onClick={() => handleEditWebsite(website)}
                       >
-                        <Edit className="w-3 h-3 mr-1" />
-                        Edit
+                        <Edit className="w-3 h-3" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handlePublishWebsite(website)}
+                        className={website.status === WebsiteStatus.PUBLISHED ? "bg-green-50 text-green-700 hover:bg-green-100" : ""}
+                      >
+                        {website.status === WebsiteStatus.PUBLISHED ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleDeleteWebsite(website)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>
@@ -395,6 +408,7 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
                         variant="ghost" 
                         size="sm"
                         onClick={() => handleViewWebsite(website)}
+                        title="View"
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -402,49 +416,28 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
                         variant="ghost" 
                         size="sm"
                         onClick={() => handleEditWebsite(website)}
+                        title="Edit"
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <DropdownMenu
-                        trigger={
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        }
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handlePublishWebsite(website)}
+                        title={website.status === WebsiteStatus.PUBLISHED ? "Unpublish" : "Publish"}
+                        className={website.status === WebsiteStatus.PUBLISHED ? "bg-green-50 text-green-700 hover:bg-green-100" : ""}
                       >
-                        <DropdownMenuItem onClick={() => handleViewWebsite(website)}>
-                          <Eye className="w-4 h-4 mr-2" />
-                          View Website
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditWebsite(website)}>
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDuplicateWebsite(website)}>
-                          <Copy className="w-4 h-4 mr-2" />
-                          Duplicate
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handlePublishWebsite(website)}>
-                          {website.status === WebsiteStatus.PUBLISHED ? (
-                            <>
-                              <Pause className="w-4 h-4 mr-2" />
-                              Unpublish
-                            </>
-                          ) : (
-                            <>
-                              <Play className="w-4 h-4 mr-2" />
-                              Publish
-                            </>
-                          )}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteWebsite(website)}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenu>
+                        {website.status === WebsiteStatus.PUBLISHED ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteWebsite(website)}
+                        title="Delete"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 )
