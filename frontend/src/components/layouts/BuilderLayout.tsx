@@ -11,6 +11,7 @@ import BuilderSidebar from './BuilderSidebar'
 import BuilderCanvas from '../builder/BuilderCanvas'
 import BuilderProperties from './BuilderProperties'
 import BuilderToolbar from './BuilderToolbar'
+import BuilderLayersPanel from './BuilderLayersPanel'
 
 // UI Components
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -23,6 +24,7 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const { websiteId } = useParams<{ websiteId: string }>()
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(true)
+  const [isLayersOpen, setIsLayersOpen] = useState(false)
   const [responsiveMode, setResponsiveMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
 
   const { 
