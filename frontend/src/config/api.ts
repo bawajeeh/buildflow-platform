@@ -30,7 +30,7 @@ export const API_CONFIG = {
       SAVE: (id: string) => `${API_BASE_URL}/api/pages/${id}/save`,
     },
     ELEMENTS: {
-      LIST: (pageId: string) => `${API_BASE_URL}/api/pages/${pageId}/elements`,
+      LIST: (pageId: string) => `${API_BASE_URL}/api/elements/page/${pageId}`,
       CREATE: `${API_BASE_URL}/api/elements`,
       UPDATE: (id: string) => `${API_BASE_URL}/api/elements/${id}`,
       DELETE: (id: string) => `${API_BASE_URL}/api/elements/${id}`,
