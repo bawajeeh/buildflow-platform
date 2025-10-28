@@ -24,7 +24,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   responsiveMode,
   onElementSelect,
 }) => {
-  const { hoveredElement, hoverElement } = useBuilderStore()
+  const { hoveredElement, hoverElement, addElement } = useBuilderStore()
 
   // Make the page root droppable
   const { setNodeRef: setPageRef, isOver: isPageOver } = useDroppable({
