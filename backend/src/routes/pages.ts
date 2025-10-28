@@ -3,6 +3,47 @@ import { getPrismaClient } from '../services/database'
 
 const router = Router()
 
+// Get all pages for a website by website ID
+router.get('/:websiteId/pages', async (req, res) => {
+  try {
+    const pages = await getPrismaClient().page.findMany({
+      where: { websiteId: req.params.websiteId },
+      include: {
+        elements: {
+          orderBy: { order: 'asc' },
+        },
+      },
+    })
+    res.json(pages)
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch pages' })
+  }
+})
+
+// Create page for a website
+router.post('/:websiteId/pages', async (req, res) => {
+  try {
+    const { name, slug, title, description, isHomePage } = req.body
+    
+    const page = await getPrismaClient().page.create({
+      data: {
+        websiteId: req.params.websiteId,
+        name,
+        slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+        title: title || name,
+        description: description || '',
+        isHome: isHomePage || false,
+        isPublished: false,
+      },
+    })
+    
+    res.status(201).json(page)
+  } catch (error) {
+    console.error('Failed to create page:', error)
+    res.status(500).json({ error: 'Failed to create page' })
+  }
+})
+
 // Get all pages for a website
 router.get('/website/:websiteId', async (req, res) => {
   try {
