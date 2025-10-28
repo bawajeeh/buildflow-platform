@@ -110,8 +110,6 @@ const BuilderProperties: React.FC<BuilderPropertiesProps> = ({
       </div>
       
       <div className="p-4">
-        <div className="mb-4 p-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-        
         <div className="space-y-3">
           <div className="p-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded border border-blue-200">
             <div className="flex items-center justify-between">
