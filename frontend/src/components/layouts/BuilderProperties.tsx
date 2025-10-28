@@ -254,10 +254,166 @@ const BuilderProperties: React.FC<BuilderPropertiesProps> = ({
             </div>
           )}
 
+          {/* Spacer Element */}
+          {selectedElement.type === 'SPACER' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Height (px)
+              </label>
+              <input
+                type="number"
+                value={localProps.height || 20}
+                onChange={(e) => setLocalProps({ ...localProps, height: parseInt(e.target.value) || 20 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <button
+                onClick={handleUpdate}
+                className="mt-2 w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Update
+              </button>
+            </div>
+          )}
+
+          {/* Divider Element */}
+          {selectedElement.type === 'DIVIDER' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Style
+              </label>
+              <select
+                value={localProps.style || 'solid'}
+                onChange={(e) => setLocalProps({ ...localProps, style: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              >
+                <option value="solid">Solid</option>
+                <option value="dashed">Dashed</option>
+                <option value="dotted">Dotted</option>
+              </select>
+              <button
+                onClick={handleUpdate}
+                className="mt-2 w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Update
+              </button>
+            </div>
+          )}
+
+          {/* SELECT Element */}
+          {selectedElement.type === 'SELECT' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Options (one per line)
+              </label>
+              <textarea
+                value={localProps.options?.join('\n') || ''}
+                onChange={(e) => setLocalProps({ ...localProps, options: e.target.value.split('\n').filter(Boolean) })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                rows={4}
+              />
+              <button
+                onClick={handleUpdate}
+                className="mt-2 w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Update
+              </button>
+            </div>
+          )}
+
+          {/* TEXTAREA Element */}
+          {selectedElement.type === 'TEXTAREA' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Placeholder
+              </label>
+              <input
+                type="text"
+                value={localProps.placeholder || ''}
+                onChange={(e) => setLocalProps({ ...localProps, placeholder: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
+                Rows
+              </label>
+              <input
+                type="number"
+                value={localProps.rows || 3}
+                onChange={(e) => setLocalProps({ ...localProps, rows: parseInt(e.target.value) || 3 })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <button
+                onClick={handleUpdate}
+                className="mt-2 w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Update
+              </button>
+            </div>
+          )}
+
+          {/* CHECKBOX Element */}
+          {selectedElement.type === 'CHECKBOX' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Label
+              </label>
+              <input
+                type="text"
+                value={localProps.label || ''}
+                onChange={(e) => setLocalProps({ ...localProps, label: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
+                <input
+                  type="checkbox"
+                  checked={localProps.checked || false}
+                  onChange={(e) => setLocalProps({ ...localProps, checked: e.target.checked })}
+                  className="mr-2"
+                />
+                Checked by default
+              </label>
+              <button
+                onClick={handleUpdate}
+                className="mt-2 w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Update
+              </button>
+            </div>
+          )}
+
+          {/* RADIO Element */}
+          {selectedElement.type === 'RADIO' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Label
+              </label>
+              <input
+                type="text"
+                value={localProps.label || ''}
+                onChange={(e) => setLocalProps({ ...localProps, label: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <label className="block text-sm font-medium text-gray-700 mb-1 mt-3">
+                <input
+                  type="checkbox"
+                  checked={localProps.checked || false}
+                  onChange={(e) => setLocalProps({ ...localProps, checked: e.target.checked })}
+                  className="mr-2"
+                />
+                Selected by default
+              </label>
+              <button
+                onClick={handleUpdate}
+                className="mt-2 w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Update
+              </button>
+            </div>
+          )}
+
           {/* Default case for other elements */}
-          {!['TEXT', 'HEADING', 'BUTTON', 'IMAGE', 'FORM', 'INPUT'].includes(selectedElement.type) && (
+          {!['TEXT', 'HEADING', 'BUTTON', 'IMAGE', 'FORM', 'INPUT', 'SPACER', 'DIVIDER', 'SELECT', 'TEXTAREA', 'CHECKBOX', 'RADIO'].includes(selectedElement.type) && (
             <div className="text-center py-4 text-gray-500 text-sm">
-              Element properties coming soon
+              Element properties coming soon for {selectedElement.type}
             </div>
           )}
         </div>
