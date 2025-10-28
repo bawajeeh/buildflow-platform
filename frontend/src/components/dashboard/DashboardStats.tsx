@@ -254,7 +254,7 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
                   {website.status}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
-                  {website.subdomain}.buildflow.com
+                  {website.subdomain}.ain90.online
                 </span>
               </div>
 

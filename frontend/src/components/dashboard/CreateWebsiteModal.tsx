@@ -131,11 +131,11 @@ const CreateWebsiteModal: React.FC<CreateWebsiteModalProps> = ({
                 className="rounded-r-none"
               />
               <span className="px-3 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm text-gray-600">
-                .buildflow.com
+                .ain90.online
               </span>
             </div>
             <p className="mt-1 text-xs text-gray-500">
-              This will be your website URL: {formData.subdomain || 'your-subdomain'}.buildflow.com
+              This will be your website URL: {formData.subdomain || 'your-subdomain'}.ain90.online
             </p>
           </div>
 
