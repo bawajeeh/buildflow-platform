@@ -140,8 +140,8 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   return (
     <div
       ref={setPageRef}
-      className={`min-h-full transition-colors ${
-        isPageOver ? 'bg-primary/5' : 'bg-background'
+      className={`min-h-full bg-gradient-to-br from-gray-50 via-white to-blue-50 transition-all duration-300 ${
+        isPageOver ? 'bg-gradient-to-br from-blue-100 to-purple-100 border-4 border-dashed border-blue-500 shadow-2xl' : 'bg-gradient-to-br from-gray-50 via-white to-blue-50'
       }`}
       onClick={handleCanvasClick}
       onDragOver={(e) => e.preventDefault()}
