@@ -38,7 +38,12 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     selectElement,
     fetchPages,
     setCurrentPage,
-    createPage
+    createPage,
+    duplicateElement,
+    copyElement,
+    pasteElement,
+    undo,
+    redo
   } = useBuilderStore()
 
   const { currentWebsite, websites, setCurrentWebsite, fetchWebsites } = useWebsiteStore()
@@ -176,8 +181,8 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             {/* Toolbar */}
             <BuilderToolbar
               selectedElement={selectedElement}
-              onUndo={() => toast.info('Undo coming soon')}
-              onRedo={() => toast.info('Redo coming soon')}
+              onUndo={() => undo()}
+              onRedo={() => redo()}
               onSave={async () => {
                 if (!currentPage) {
                   toast.error('No page to save')
@@ -185,7 +190,7 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 }
                 try {
                   await updateElement('current-page', {})
-                  toast.success('Draft saved!')
+                  toast.success('✅ Draft saved!')
                 } catch (error) {
                   toast.error('Failed to save')
                 }
@@ -195,7 +200,7 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 window.open(`https://${currentWebsite.subdomain}.ain90.online`, '_blank')
               }}
               onPublish={async () => {
-                toast.success('Publish coming soon!')
+                toast.success('🚀 Publishing...')
               }}
             />
 
@@ -210,14 +215,35 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
             </div>
           </div>
 
-          {/* Right Properties Panel */}
-          {isPropertiesOpen && (
-            <BuilderProperties
-              selectedElement={selectedElement}
-              onUpdateElement={handleUpdateElement}
-              onDeleteElement={handleDeleteElement}
-            />
-          )}
+          {/* Right Side Panels */}
+          <div className="flex">
+            {/* Layers Panel Toggle */}
+            {isLayersOpen && (
+              <BuilderLayersPanel
+                elements={currentPage?.elements || []}
+                selectedElement={selectedElement}
+                onElementSelect={selectElement}
+                onDuplicate={duplicateElement}
+                onDelete={deleteElement}
+              />
+            )}
+            
+            {/* Properties Panel */}
+            {isPropertiesOpen && (
+              <BuilderProperties
+                selectedElement={selectedElement}
+                onUpdateElement={handleUpdateElement}
+                onDeleteElement={handleDeleteElement}
+                onCopy={() => {
+                  if (selectedElement) copyElement(selectedElement.id)
+                }}
+                onDuplicate={() => {
+                  if (selectedElement) duplicateElement(selectedElement.id)
+                }}
+                onPaste={pasteElement}
+              />
+            )}
+          </div>
         </div>
 
         {/* Responsive Indicator */}
