@@ -22,16 +22,16 @@ const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
   className 
 }) => {
   return (
-    <div className={cn('bg-white border-b border-gray-200 px-4 py-2.5 shadow-sm', className)}>
+    <div className={cn('bg-white/95 backdrop-blur-xl border-b border-gray-200/50 px-5 py-3 shadow-lg', className)}>
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-2">
           {/* Undo */}
           <button 
             onClick={onUndo} 
-            className="p-1.5 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-md transition-colors" 
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 group" 
             title="Undo (Ctrl+Z)"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
             </svg>
           </button>
@@ -39,74 +39,63 @@ const BuilderToolbar: React.FC<BuilderToolbarProps> = ({
           {/* Redo */}
           <button 
             onClick={onRedo} 
-            className="p-1.5 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-md transition-colors" 
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all duration-200 group" 
             title="Redo (Ctrl+Shift+Z)"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
             </svg>
           </button>
           
-          <div className="w-px h-5 bg-gray-300 mx-1.5"></div>
+          <div className="w-px h-6 bg-gray-300 mx-1"></div>
           
-          {/* Zoom Out */}
-          <button 
-            className="p-1.5 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-md transition-colors" 
-            title="Zoom Out"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
-            </svg>
-          </button>
-          
-          {/* Zoom In */}
-          <button 
-            className="p-1.5 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-md transition-colors" 
-            title="Zoom In"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
-            </svg>
-          </button>
-          
-          <div className="w-px h-5 bg-gray-300 mx-1.5"></div>
-          
-          {/* History */}
-          <button 
-            className="p-1.5 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-md transition-colors" 
-            title="History"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
+          {/* Zoom Controls */}
+          <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-0.5">
+            <button 
+              className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded transition-all duration-200" 
+              title="Zoom Out"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+              </svg>
+            </button>
+            <span className="px-2 text-xs font-medium text-gray-600">100%</span>
+            <button 
+              className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-white rounded transition-all duration-200" 
+              title="Zoom In"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7" />
+              </svg>
+            </button>
+          </div>
         </div>
         
         {/* Selected Element Info */}
         {selectedElement && (
-          <div className="flex items-center space-x-2 px-3 py-1 bg-blue-50 rounded-md border border-blue-200">
-            <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-            <span className="text-sm font-medium text-blue-900">{selectedElement.name}</span>
-            <span className="text-xs text-blue-600">{selectedElement.type}</span>
+          <div className="flex items-center space-x-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200/50 shadow-sm">
+            <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-pulse"></div>
+            <span className="text-sm font-semibold text-gray-900">{selectedElement.name}</span>
+            <span className="text-xs text-gray-500 bg-white px-1.5 py-0.5 rounded">{selectedElement.type}</span>
           </div>
         )}
         
         <div className="flex items-center space-x-2">
           <button 
             onClick={onSave}
-            className="px-4 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow"
           >
-            Save Draft
+            💾 Save Draft
           </button>
           <button 
             onClick={onPreview}
-            className="px-4 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 shadow-sm hover:shadow"
           >
             👁️ Preview
           </button>
           <button 
             onClick={onPublish}
-            className="px-4 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-blue-700 rounded-md hover:from-blue-700 hover:to-blue-800 shadow-sm transition-all"
+            className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 via-blue-600 to-purple-600 rounded-lg hover:from-blue-700 hover:via-blue-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
           >
             🚀 Publish
           </button>

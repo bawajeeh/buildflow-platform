@@ -22,7 +22,7 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
   className 
 }) => {
   return (
-    <div className={cn('bg-white border-b border-gray-200 px-6 py-4 shadow-sm', className)}>
+    <div className={cn('bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700/50 px-6 py-3.5 backdrop-blur-xl shadow-2xl', className)}>
       <div className="flex items-center justify-between">
         {/* Left Section */}
         <div className="flex items-center space-x-6">
@@ -31,7 +31,7 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
             {onToggleSidebar && (
               <button
                 onClick={onToggleSidebar}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                className="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 backdrop-blur-sm"
                 title="Toggle Sidebar"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,46 +40,59 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
               </button>
             )}
             
-            <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              🎨 Website Builder
-            </h1>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                <span className="text-white text-lg font-bold">🎨</span>
+              </div>
+              <div>
+                <h1 className="text-base font-bold text-white leading-tight">
+                  Website Builder
+                </h1>
+                {website && (
+                  <p className="text-xs text-gray-400">{website.name}</p>
+                )}
+              </div>
+            </div>
           </div>
           
           {/* Responsive Mode Selector */}
           {onResponsiveModeChange && (
-            <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center space-x-1 bg-gray-800/80 backdrop-blur-sm rounded-lg p-1 border border-gray-700/50 shadow-lg">
               <button
                 onClick={() => onResponsiveModeChange('desktop')}
                 className={cn(
-                  'px-3 py-1.5 text-sm font-medium rounded-md transition-all',
+                  'px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 flex items-center gap-1.5',
                   responsiveMode === 'desktop'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
                 )}
               >
-                💻 Desktop
+                <span>💻</span>
+                <span>Desktop</span>
               </button>
               <button
                 onClick={() => onResponsiveModeChange('tablet')}
                 className={cn(
-                  'px-3 py-1.5 text-sm font-medium rounded-md transition-all',
+                  'px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 flex items-center gap-1.5',
                   responsiveMode === 'tablet'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
                 )}
               >
-                📱 Tablet
+                <span>📱</span>
+                <span>Tablet</span>
               </button>
               <button
                 onClick={() => onResponsiveModeChange('mobile')}
                 className={cn(
-                  'px-3 py-1.5 text-sm font-medium rounded-md transition-all',
+                  'px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 flex items-center gap-1.5',
                   responsiveMode === 'mobile'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-200'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg scale-105'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700/50'
                 )}
               >
-                📱 Mobile
+                <span>📱</span>
+                <span>Mobile</span>
               </button>
             </div>
           )}
@@ -89,8 +102,11 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
         <div className="flex items-center space-x-3">
           {/* Page Info */}
           {currentPage && (
-            <div className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md">
-              <span className="text-sm font-medium text-blue-900">{currentPage.name}</span>
+            <div className="px-3 py-1.5 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm border border-blue-500/30 rounded-lg shadow-lg">
+              <div className="flex items-center gap-2">
+                <span className="text-xs">📄</span>
+                <span className="text-sm font-semibold text-white">{currentPage.name}</span>
+              </div>
             </div>
           )}
           
@@ -99,7 +115,7 @@ const BuilderHeader: React.FC<BuilderHeaderProps> = ({
             {onToggleProperties && (
               <button
                 onClick={onToggleProperties}
-                className="p-2 text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                className="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200 backdrop-blur-sm"
                 title="Toggle Properties"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

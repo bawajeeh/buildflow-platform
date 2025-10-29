@@ -193,7 +193,7 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       onUpdateElement={handleUpdateElement}
       onDeleteElement={handleDeleteElement}
     >
-      <div className="h-screen flex flex-col bg-background">
+      <div className="h-screen flex flex-col bg-gradient-to-br from-gray-100 via-white to-gray-50 overflow-hidden">
         {/* Header */}
         <BuilderHeader
           website={currentWebsite}
@@ -205,10 +205,10 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden relative">
           {/* Left Sidebar */}
           {isSidebarOpen && (
-            <div className="slide-in-left">
+            <div className="slide-in-left z-10 shadow-2xl">
               <BuilderSidebar
                 website={currentWebsite}
                 currentPage={currentPage}
@@ -222,7 +222,7 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           )}
 
           {/* Canvas Area */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col bg-gray-50 relative">
             {/* Toolbar */}
             <BuilderToolbar
               selectedElement={selectedElement}
@@ -249,8 +249,14 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               }}
             />
 
-            {/* Canvas */}
-            <div className="flex-1 relative">
+            {/* Canvas with Grid Background */}
+            <div className="flex-1 relative overflow-auto" style={{
+              backgroundImage: `
+                linear-gradient(to right, rgba(0,0,0,0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.02) 1px, transparent 1px)
+              `,
+              backgroundSize: '20px 20px'
+            }}>
               <BuilderCanvas
                 page={currentPage}
                 selectedElement={selectedElement}
@@ -261,7 +267,7 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           </div>
 
           {/* Right Side Panels */}
-          <div className="flex slide-in-right">
+          <div className="flex slide-in-right z-10 shadow-2xl">
             {/* Layers Panel Toggle */}
             {isLayersOpen && (
               <BuilderLayersPanel
