@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { cn } from '@/utils'
 import { Website, Page } from '@/types'
 import toast from 'react-hot-toast'
@@ -8,7 +8,7 @@ interface BuilderSidebarProps {
   website?: Website | null
   currentPage?: Page | null
   onPageSelect: (page: Page) => void
-  onPageCreate: (pageData: { name: string; slug: string; title: string }) => Promise<Page>
+  onPageCreate: (pageData: { name: string; slug: string; title: string; description: string; isHomePage: boolean }) => Promise<Page>
   className?: string
 }
 

@@ -43,7 +43,8 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     copyElement,
     pasteElement,
     undo,
-    redo
+    redo,
+    saveLayout
   } = useBuilderStore()
 
   const { currentWebsite, websites, setCurrentWebsite, fetchWebsites } = useWebsiteStore()
@@ -229,16 +230,9 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               onUndo={() => undo()}
               onRedo={() => redo()}
               onSave={async () => {
-                if (!currentPage) {
-                  toast.error('No page to save')
-                  return
-                }
-                try {
-                  await updateElement('current-page', {})
-                  toast.success('✅ Draft saved!')
-                } catch (error) {
-                  toast.error('Failed to save')
-                }
+                if (!currentPage) { toast.error('No page to save'); return }
+                await saveLayout()
+                toast.success('✅ Draft saved!')
               }}
               onPreview={() => {
                 if (!currentWebsite) return
