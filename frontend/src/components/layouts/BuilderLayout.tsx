@@ -48,6 +48,40 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   const { currentWebsite, websites, setCurrentWebsite, fetchWebsites } = useWebsiteStore()
 
+  // Handle element operations - Define before useEffect hooks
+  const handleAddElement = async (element: Element, parentId?: string) => {
+    try {
+      await addElement(element, parentId)
+    } catch (error) {
+      console.error('Failed to add element:', error)
+    }
+  }
+
+  const handleMoveElement = async (elementId: string, newParentId: string, newOrder: number) => {
+    try {
+      await moveElement(elementId, newParentId, newOrder)
+    } catch (error) {
+      console.error('Failed to move element:', error)
+    }
+  }
+
+  const handleUpdateElement = async (elementId: string, updates: Partial<Element>) => {
+    try {
+      await updateElement(elementId, updates)
+    } catch (error) {
+      console.error('Failed to update element:', error)
+    }
+  }
+
+  const handleDeleteElement = async (elementId: string) => {
+    try {
+      await deleteElement(elementId)
+      selectElement(null)
+    } catch (error) {
+      console.error('Failed to delete element:', error)
+    }
+  }
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -128,40 +162,6 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     }
     loadPages()
   }, [currentWebsite, currentPage, fetchPages, createPage])
-
-  // Handle element operations
-  const handleAddElement = async (element: Element, parentId?: string) => {
-    try {
-      await addElement(element, parentId)
-    } catch (error) {
-      console.error('Failed to add element:', error)
-    }
-  }
-
-  const handleMoveElement = async (elementId: string, newParentId: string, newOrder: number) => {
-    try {
-      await moveElement(elementId, newParentId, newOrder)
-    } catch (error) {
-      console.error('Failed to move element:', error)
-    }
-  }
-
-  const handleUpdateElement = async (elementId: string, updates: Partial<Element>) => {
-    try {
-      await updateElement(elementId, updates)
-    } catch (error) {
-      console.error('Failed to update element:', error)
-    }
-  }
-
-  const handleDeleteElement = async (elementId: string) => {
-    try {
-      await deleteElement(elementId)
-      selectElement(null)
-    } catch (error) {
-      console.error('Failed to delete element:', error)
-    }
-  }
 
   if (isLoading) {
     return (
