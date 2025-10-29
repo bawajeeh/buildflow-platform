@@ -36,18 +36,24 @@ const ElementDraggable: React.FC<ElementDraggableProps> = ({ element }) => {
   }
 
   return (
-    <div
+    <button
+      type="button"
+      title={`Drag ${element.name}`}
+      aria-label={`Drag ${element.name}`}
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       className={cn(
-        'flex flex-col items-center justify-center p-3 text-xs text-gray-700 hover:bg-blue-50 border-2 border-gray-200 hover:border-blue-400 rounded-lg cursor-grab active:cursor-grabbing select-none transition-all duration-200 bg-white shadow-sm hover:shadow-md transform hover:scale-105',
-        isDragging && 'opacity-50 scale-95'
+        'group relative flex flex-col items-center justify-center p-3 text-xs text-gray-700 rounded-xl cursor-grab active:cursor-grabbing select-none transition-all duration-200 bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 hover:bg-blue-50/60',
+        isDragging && 'opacity-60 scale-95'
       )}
     >
-      <span className="text-2xl mb-1">{element.icon}</span>
-      <span className="font-semibold text-center">{element.name}</span>
-    </div>
+      <span className="mb-1 inline-flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-md">
+        <span className="text-lg">{element.icon}</span>
+      </span>
+      <span className="font-semibold text-center leading-tight">{element.name}</span>
+      <span className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px] rounded-full bg-blue-100 text-blue-700 border border-blue-200 opacity-0 group-hover:opacity-100 transition-opacity">NEW</span>
+    </button>
   )
 }
 
@@ -60,6 +66,8 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
 }) => {
   const [isCreatingPage, setIsCreatingPage] = useState(false)
   const [pageName, setPageName] = useState('')
+  const [query, setQuery] = useState('')
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({})
   const { pages } = useBuilderStore()
 
   const handleCreatePage = async () => {
@@ -114,6 +122,10 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
       ]
     }
   ]
+
+  const toggleCategory = (name: string) => {
+    setOpenCategories((prev) => ({ ...prev, [name]: !prev[name] }))
+  }
 
   return (
     <div className={cn('w-72 bg-gradient-to-br from-gray-50 to-white border-r border-gray-300 overflow-hidden flex flex-col shadow-lg', className)}>
@@ -182,7 +194,7 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
 
       {/* Elements Section */}
       <div className="p-4 bg-white border-t border-gray-200 flex-1 overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
             🎨 Elements
           </h2>
@@ -190,22 +202,54 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
             {elementCategories.reduce((acc, cat) => acc + cat.elements.length, 0)} total
           </div>
         </div>
-        
-        {elementCategories.map((category) => (
-          <div key={category.name} className="mb-5 bg-gradient-to-br from-gray-50 to-white p-3 rounded-lg border border-gray-200">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-1 h-4 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
-              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
-                {category.name}
-              </h3>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              {category.elements.map((element) => (
-                <ElementDraggable key={element.type} element={element} />
-              ))}
-            </div>
+        {/* Search */}
+        <div className="mb-4">
+          <div className="relative">
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search elements..."
+              className="w-full px-3 pl-9 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔎</span>
           </div>
-        ))}
+        </div>
+        
+        {elementCategories.map((category) => {
+          const filtered = category.elements.filter(el =>
+            el.name.toLowerCase().includes(query.toLowerCase()) ||
+            el.type.toLowerCase().includes(query.toLowerCase())
+          )
+          const isOpen = openCategories[category.name] ?? true
+          if (query && filtered.length === 0) return null
+
+          return (
+            <div key={category.name} className="mb-5 bg-gradient-to-br from-gray-50 to-white p-3 rounded-lg border border-gray-200">
+              <button
+                type="button"
+                onClick={() => toggleCategory(category.name)}
+                className="w-full flex items-center justify-between mb-3 text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-4 bg-gradient-to-b from-blue-600 to-purple-600 rounded-full"></div>
+                  <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide">
+                    {category.name}
+                  </h3>
+                  <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-700">{filtered.length}</span>
+                </div>
+                <span className={cn('transition-transform', isOpen ? 'rotate-0' : '-rotate-90')}>▾</span>
+              </button>
+              {isOpen && (
+                <div className="grid grid-cols-2 gap-2">
+                  {filtered.map((element) => (
+                    <ElementDraggable key={element.type} element={element} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
     </div>
   )
