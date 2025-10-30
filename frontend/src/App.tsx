@@ -37,6 +37,7 @@ import PricingPage from '@/pages/public/PricingPage'
 import FeaturesPage from '@/pages/public/FeaturesPage'
 import AboutPage from '@/pages/public/AboutPage'
 import ContactPage from '@/pages/public/ContactPage'
+import DeploymentCheckPage from '@/pages/public/DeploymentCheckPage'
 
 // Loading Component
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
@@ -63,6 +64,7 @@ const App: React.FC = () => {
         <Route path="/features" element={<FeaturesPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/deploy-check" element={<DeploymentCheckPage />} />
 
         {/* Auth Routes */}
         <Route

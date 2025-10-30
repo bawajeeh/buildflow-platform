@@ -127,3 +127,64 @@ router.delete('/:id', async (req, res) => {
 })
 
 export default router
+
+// Theme tokens per-website
+router.get('/:id/theme', async (req, res) => {
+  try {
+    const prisma = getPrismaClient()
+    const settings = await prisma.websiteSettings.findUnique({ where: { websiteId: req.params.id } })
+    let tokens: any = null
+    // Reuse customTrackingCode to store theme JSON if available, otherwise map from existing fields
+    if (settings?.customTrackingCode) {
+      try { tokens = JSON.parse(settings.customTrackingCode) } catch { tokens = null }
+    }
+    if (!tokens && settings) {
+      tokens = {
+        colors: {
+          primary: settings.primaryColor || '#3b82f6',
+          secondary: settings.secondaryColor || '#64748b',
+          text: '#111827',
+          background: '#ffffff',
+        },
+        typography: { fontFamily: settings.fontFamily || 'Inter', baseSize: 16 },
+        spacing: { base: 8, radius: settings.borderRadius || 8 },
+      }
+    }
+    if (!tokens) {
+      tokens = {
+        colors: { primary: '#3b82f6', secondary: '#8b5cf6', text: '#111827', background: '#ffffff' },
+        typography: { fontFamily: 'Inter', baseSize: 16 },
+        spacing: { base: 8, radius: 8 },
+      }
+    }
+    res.json(tokens)
+  } catch (error: any) {
+    console.error('Theme load error:', error)
+    res.status(500).json({ error: 'Failed to load theme tokens' })
+  }
+})
+
+router.put('/:id/theme', async (req, res) => {
+  try {
+    const prisma = getPrismaClient()
+    const payload = req.body || {}
+    const json = JSON.stringify(payload)
+    // upsert settings row
+    const settings = await prisma.websiteSettings.upsert({
+      where: { websiteId: req.params.id },
+      update: { customTrackingCode: json },
+      create: {
+        websiteId: req.params.id,
+        customTrackingCode: json,
+        primaryColor: payload?.colors?.primary || '#3b82f6',
+        secondaryColor: payload?.colors?.secondary || '#64748b',
+        fontFamily: payload?.typography?.fontFamily || 'Inter',
+        borderRadius: payload?.spacing?.radius || 8,
+      },
+    })
+    res.json({ ok: true, settingsId: settings.id })
+  } catch (error: any) {
+    console.error('Theme save error:', error)
+    res.status(500).json({ error: 'Failed to save theme tokens' })
+  }
+})

@@ -2,7 +2,9 @@ import React, { useState } from 'react'
 import { cn } from '@/utils'
 import { Website, Page } from '@/types'
 import toast from 'react-hot-toast'
-import { useBuilderStore } from '@/store'
+import { useBuilderStore, useAuthStore } from '@/store'
+import { useWebsiteStore } from '@/store'
+import { API_CONFIG } from '@/config/api'
 
 interface BuilderSidebarProps {
   website?: Website | null
@@ -69,6 +71,33 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
   const [query, setQuery] = useState('')
   const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({})
   const { pages } = useBuilderStore()
+  const {
+    components,
+    createComponentFromElements,
+    instantiateComponent,
+    editComponent,
+    deleteComponent,
+    renameComponent,
+  } = useBuilderStore()
+  const { currentPage, selectedElement, lastPointerPosition } = useBuilderStore()
+  const { currentWebsite } = useWebsiteStore()
+  const [assets, setAssets] = useState<any[]>([])
+  const [assetQuery, setAssetQuery] = useState('')
+  const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({})
+
+  React.useEffect(() => {
+    const loadAssets = async () => {
+      try {
+        if (!currentWebsite) return
+        const res = await fetch(`${API_CONFIG.BASE_URL}/api/media?websiteId=${currentWebsite.id}`, { credentials: 'include' })
+        if (res.ok) {
+          const data = await res.json()
+          setAssets(Array.isArray(data) ? data : [])
+        }
+      } catch {}
+    }
+    loadAssets()
+  }, [currentWebsite])
 
   const handleCreatePage = async () => {
     if (!pageName.trim()) {
@@ -250,6 +279,210 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
             </div>
           )
         })}
+
+        {/* Components Section */}
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">🧩 Components</h2>
+            <button
+              className="px-2 py-1 text-xs rounded border bg-white hover:bg-gray-50"
+              onClick={async ()=>{
+                try {
+                  if (!selectedElement) { toast.error('Select an element first'); return }
+                  const id = await createComponentFromElements(selectedElement.name || 'Component', [selectedElement.id])
+                  toast.success('Component created')
+                } catch (e:any) {
+                  toast.error(e?.message || 'Failed to create component')
+                }
+              }}
+            >Create from selection</button>
+          </div>
+          {Object.keys(components).length === 0 ? (
+            <div className="text-xs text-gray-500">No components yet</div>
+          ) : (
+            <div className="space-y-2">
+              {Object.values(components).map((c)=> (
+                <div key={c.id} className="flex items-center justify-between p-2 border rounded hover:bg-gray-50 group">
+                  <div className="text-sm font-medium text-gray-800 truncate flex-1">{c.name}</div>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      className="px-1.5 py-0.5 text-xs rounded border bg-blue-50 text-blue-700 hover:bg-blue-100"
+                      onClick={()=>editComponent(c.id)}
+                      title="Edit component"
+                    >✏️</button>
+                    <button
+                      className="px-1.5 py-0.5 text-xs rounded border bg-purple-50 text-purple-700 hover:bg-purple-100"
+                      onClick={()=>{
+                        const newName = prompt('Rename component:', c.name)
+                        if (newName && newName.trim()) renameComponent(c.id, newName.trim())
+                      }}
+                      title="Rename component"
+                    >🏷️</button>
+                    <button
+                      className="px-2 py-1 text-xs rounded border bg-white hover:bg-gray-50"
+                      onClick={async ()=>{
+                        try {
+                          if (!currentPage) { toast.error('No page selected'); return }
+                          await instantiateComponent(c.id, currentPage.id, lastPointerPosition)
+                          toast.success('Inserted')
+                        } catch (e:any) {
+                          toast.error(e?.message || 'Insert failed')
+                        }
+                      }}
+                      title="Insert component"
+                    >Insert</button>
+                    <button
+                      className="px-1.5 py-0.5 text-xs rounded border bg-red-50 text-red-700 hover:bg-red-100"
+                      onClick={()=>deleteComponent(c.id)}
+                      title="Delete component"
+                    >🗑️</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Asset Library */}
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">🖼️ Assets</h2>
+            <label className="text-xs px-2 py-1 border rounded bg-white hover:bg-gray-50 cursor-pointer">
+              Upload
+              <input type="file" accept="image/*" className="hidden" onChange={async (e)=>{
+                const file = e.target.files?.[0]
+                if (!file || !currentWebsite) return
+                // Validate
+                if (file.size > 10 * 1024 * 1024) { toast.error('File too large (max 10MB)'); return }
+                if (!file.type.startsWith('image/')) { toast.error('Only images allowed'); return }
+                const fileId = `${file.name}-${Date.now()}`
+                const fd = new FormData()
+                fd.append('file', file)
+                fd.append('websiteId', currentWebsite.id)
+                setUploadProgress({ [fileId]: 0 })
+                try {
+                  const xhr = new XMLHttpRequest()
+                  xhr.upload.onprogress = (evt) => {
+                    if (evt.lengthComputable) {
+                      const percent = Math.round((evt.loaded / evt.total) * 100)
+                      setUploadProgress(prev => ({ ...prev, [fileId]: percent }))
+                    }
+                  }
+                  xhr.onload = () => {
+                    setUploadProgress(prev => { const next = { ...prev }; delete next[fileId]; return next })
+                    if (xhr.status === 200 || xhr.status === 201) {
+                      const item = JSON.parse(xhr.responseText)
+                      setAssets((arr)=> [item, ...arr])
+                      toast.success('✅ Uploaded')
+                    } else {
+                      toast.error('Upload failed')
+                    }
+                  }
+                  xhr.onerror = () => {
+                    setUploadProgress(prev => { const next = { ...prev }; delete next[fileId]; return next })
+                    toast.error('Upload error')
+                  }
+                  xhr.open('POST', `${API_CONFIG.BASE_URL}/api/media`)
+                  xhr.setRequestHeader('Authorization', `Bearer ${useAuthStore.getState().token || ''}`)
+                  xhr.send(fd)
+                } catch {
+                  setUploadProgress(prev => { const next = { ...prev }; delete next[fileId]; return next })
+                  toast.error('Upload error')
+                }
+              }} />
+            </label>
+            {Object.entries(uploadProgress).length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border rounded shadow-lg p-2 z-50">
+                {Object.entries(uploadProgress).map(([id, pct]) => (
+                  <div key={id} className="mb-1">
+                    <div className="text-xs text-gray-600 mb-1">{id.split('-')[0]}...</div>
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div className="bg-blue-600 h-1.5 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <input value={assetQuery} onChange={(e)=>setAssetQuery(e.target.value)} placeholder="Search assets..." className="w-full mb-2 px-2 py-1 text-xs border rounded" />
+          <div className="grid grid-cols-3 gap-2">
+            {assets.filter(a => !assetQuery || a.originalName?.toLowerCase().includes(assetQuery.toLowerCase())).map((a)=> (
+              <div key={a.id || a.url} className="relative group border rounded overflow-hidden" title={a.originalName}
+                draggable
+                onDragStart={(e)=>{
+                  e.dataTransfer.setData('text/uri-list', a.url)
+                }}
+                onClick={() => {
+                  if (!selectedElement) { toast.error('Select an element to apply'); return }
+                  // If image element, set src; otherwise copy to clipboard-like behavior
+                  const type = selectedElement.type?.toUpperCase?.()
+                  if (type === 'IMAGE') {
+                    onPageSelect(currentPage!)
+                    // update via store
+                    const { updateElement } = useBuilderStore.getState()
+                    updateElement(selectedElement.id, { props: { ...(selectedElement.props||{}), src: a.url } as any })
+                    toast.success('Image applied')
+                  } else {
+                    navigator.clipboard?.writeText?.(a.url)
+                    toast.success('URL copied')
+                  }
+                }}
+              >
+                <img src={a.url} alt={a.originalName || ''} className="w-full h-16 object-cover" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10" />
+                <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100">
+                  <button
+                    className="px-1.5 py-0.5 text-[10px] rounded bg-white/90 border"
+                    title="Rename"
+                    onClick={async (e)=>{
+                      e.stopPropagation()
+                      const name = prompt('New name:', a.originalName || '')
+                      if (!name || !currentWebsite) return
+                      try {
+                        const res = await fetch(`${API_CONFIG.BASE_URL}/api/media/${a.id}`, { method: 'PATCH', headers: { 'Content-Type':'application/json', 'Authorization': `Bearer ${useAuthStore.getState().token || ''}` }, body: JSON.stringify({ originalName: name }), credentials: 'include' })
+                        if (res.ok) { setAssets(list => list.map(x => x.id===a.id ? { ...x, originalName: name } : x)); toast.success('Renamed') } else { toast.error('Rename failed') }
+                      } catch { toast.error('Rename error') }
+                    }}
+                  >🏷️</button>
+                  <button
+                    className="px-1.5 py-0.5 text-[10px] rounded bg-white/90 border text-red-700"
+                    title="Delete"
+                    onClick={async (e)=>{
+                      e.stopPropagation()
+                      if (!confirm('Delete asset?')) return
+                      try {
+                        const res = await fetch(`${API_CONFIG.BASE_URL}/api/media/${a.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${useAuthStore.getState().token || ''}` }, credentials: 'include' })
+                        if (res.ok) { setAssets(list => list.filter(x => x.id !== a.id)); toast.success('Deleted') } else { toast.error('Delete failed') }
+                      } catch { toast.error('Delete error') }
+                    }}
+                  >🗑️</button>
+                </div>
+                <div className="absolute bottom-1 left-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100">
+                  <button
+                    className="flex-1 px-1.5 py-0.5 text-[10px] rounded bg-white/90 border"
+                    title="Replace in page"
+                    onClick={(e)=>{
+                      e.stopPropagation()
+                      const { replaceAssetInUse } = useBuilderStore.getState()
+                      replaceAssetInUse(a.url, a.url, 'page')
+                      toast.success('Replaced in page')
+                    }}
+                  >Replace (page)</button>
+                  <button
+                    className="flex-1 px-1.5 py-0.5 text-[10px] rounded bg-white/90 border"
+                    title="Replace site-wide"
+                    onClick={(e)=>{
+                      e.stopPropagation()
+                      const { replaceAssetInUse } = useBuilderStore.getState()
+                      replaceAssetInUse(a.url, a.url, 'site')
+                      toast.success('Replaced site-wide')
+                    }}
+                  >Replace (site)</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

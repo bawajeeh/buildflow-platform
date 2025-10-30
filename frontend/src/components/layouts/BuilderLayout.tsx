@@ -4,6 +4,8 @@ import { DragDropProvider } from '@/components/drag-drop/DragDropProvider'
 import { useBuilderStore } from '@/store'
 import { useWebsiteStore } from '@/store'
 import toast from 'react-hot-toast'
+import { API_CONFIG } from '@/config/api'
+import { useAuthStore } from '@/store'
 
 // Layout Components
 import BuilderHeader from './BuilderHeader'
@@ -12,10 +14,15 @@ import BuilderCanvas from '../builder/BuilderCanvas'
 import BuilderProperties from './BuilderProperties'
 import BuilderToolbar from './BuilderToolbar'
 import BuilderLayersPanel from './BuilderLayersPanel'
+import ComponentEditorModal from './ComponentEditorModal'
 
 // UI Components
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ResponsiveIndicator from '@/components/ui/ResponsiveIndicator'
+import GlobalModal from '@/components/ui/GlobalModal'
+import SnapshotsModal from './SnapshotsModal'
+import AccessibilityReportModal from './AccessibilityReportModal'
+import CommentsModal from './CommentsModal'
 
 // Types
 import { Element } from '@/types'
@@ -25,7 +32,17 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const [isSidebarOpen, setIsSidebarOpen] = useState(true)
   const [isPropertiesOpen, setIsPropertiesOpen] = useState(true)
   const [isLayersOpen, setIsLayersOpen] = useState(false)
+  const [isSnapshotsOpen, setIsSnapshotsOpen] = useState(false)
+  const [isA11yOpen, setIsA11yOpen] = useState(false)
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false)
   const [responsiveMode, setResponsiveMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
+  const [zoom, setZoom] = useState(1)
+  const [showGrid, setShowGrid] = useState(true)
+  const [showRulers, setShowRulers] = useState(true)
+  const [isPanning, setIsPanning] = useState(false)
+  const [isSpacePressed, setIsSpacePressed] = useState(false)
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const panStart = React.useRef<{ x: number; y: number; left: number; top: number } | null>(null)
 
   const { 
     currentPage, 
@@ -44,10 +61,19 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     pasteElement,
     undo,
     redo,
-    saveLayout
+    saveLayout,
+    loadThemeTokens,
+    saveThemeTokens,
+    loadComponents,
+    loadCMSData,
+    editingComponentId,
+    editComponent
   } = useBuilderStore()
 
   const { currentWebsite, websites, setCurrentWebsite, fetchWebsites } = useWebsiteStore()
+  const { setLocale, currentLocale } = useBuilderStore()
+  const { user } = useAuthStore()
+  const isViewer = (user?.role || '').toUpperCase() === 'VIEWER'
 
   // Handle element operations - Define before useEffect hooks
   const handleAddElement = async (element: Element, parentId?: string) => {
@@ -120,6 +146,25 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       if (e.key === 'Escape') {
         selectElement(null)
       }
+
+      // Nudge selected (freeform)
+      if (selectedElement && (selectedElement as any).props && typeof (selectedElement as any).props.x === 'number') {
+        const step = e.shiftKey ? 10 : 1
+        if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+          e.preventDefault()
+          const { x = 0, y = 0 } = (selectedElement as any).props
+          const nx = e.key === 'ArrowLeft' ? x - step : e.key === 'ArrowRight' ? x + step : x
+          const ny = e.key === 'ArrowUp' ? y - step : e.key === 'ArrowDown' ? y + step : y
+          updateElement(selectedElement.id, { props: { x: nx, y: ny } as any })
+        }
+        // Rotate shortcuts: Q/E step 1deg, Shift+Q/E step 15deg
+        if (['q','e','Q','E'].includes(e.key)) {
+          e.preventDefault()
+          const delta = (e.key.toLowerCase() === 'q' ? -1 : 1) * (e.shiftKey ? 15 : 1)
+          const angle = ((selectedElement as any).props?.rotate || 0) + delta
+          updateElement(selectedElement.id, { props: { rotate: angle } as any })
+        }
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -133,6 +178,9 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         const website = websites.find(w => w.id === websiteId)
         if (website) {
           setCurrentWebsite(website)
+          await loadThemeTokens(website.id)
+          await loadComponents(website.id)
+          await loadCMSData(website.id) // Phase 3: Load CMS data
         } else if (websites.length === 0) {
           await fetchWebsites()
         }
@@ -203,6 +251,13 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           onResponsiveModeChange={setResponsiveMode}
           onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
           onToggleProperties={() => setIsPropertiesOpen(!isPropertiesOpen)}
+          locale={currentLocale}
+          onLocaleChange={async (loc) => {
+            setLocale(loc)
+            if (currentWebsite) {
+              await fetchPages(currentWebsite.id)
+            }
+          }}
         />
 
         {/* Main Content */}
@@ -234,29 +289,140 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 await saveLayout()
                 toast.success('✅ Draft saved!')
               }}
+              onSnapshot={async () => {
+                try {
+                  if (!currentWebsite) { toast.error('No website'); return }
+                  toast.loading('Creating snapshot...', { id: 'snapshot' })
+                  await saveLayout()
+                  const { token } = useAuthStore.getState()
+                  const res = await fetch(API_CONFIG.ENDPOINTS.SNAPSHOTS.CREATE(currentWebsite.id), {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({}),
+                  })
+                  if (!res.ok) {
+                    const t = await res.text()
+                    throw new Error(t || 'Snapshot failed')
+                  }
+                  const data = await res.json()
+                  toast.success(`📦 Snapshot saved (${data?.pageCount || 0} pages)`, { id: 'snapshot' })
+                } catch (e: any) {
+                  toast.error(e?.message || 'Snapshot failed', { id: 'snapshot' })
+                }
+              }}
               onPreview={() => {
                 if (!currentWebsite) return
                 window.open(`https://${currentWebsite.subdomain}.ain90.online`, '_blank')
               }}
-              onPublish={async () => {
-                toast.success('🚀 Publishing...')
+              onPublish={isViewer ? undefined : async () => {
+                try {
+                  if (!currentWebsite) { toast.error('No website'); return }
+                  toast.loading('Publishing...', { id: 'publish' })
+                  // Save draft first
+                  await saveLayout()
+                  const { token } = useAuthStore.getState()
+                  const res = await fetch(API_CONFIG.ENDPOINTS.PUBLISH.WEBSITE(currentWebsite.id), {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                  })
+                  if (!res.ok) {
+                    const t = await res.text()
+                    throw new Error(t || 'Publish failed')
+                  }
+                  const data = await res.json()
+                  toast.success(`✅ Published ${data?.pages?.length || 0} page(s)`, { id: 'publish' })
+                } catch (e: any) {
+                  toast.error(e?.message || 'Publish failed', { id: 'publish' })
+                }
               }}
+              // Zoom + toggles
+              zoom={zoom}
+              onZoomIn={() => setZoom((z) => Math.min(3, parseFloat((z + 0.1).toFixed(2))))}
+              onZoomOut={() => setZoom((z) => Math.max(0.3, parseFloat((z - 0.1).toFixed(2))))}
+              onZoomReset={() => setZoom(1)}
+              onFitToScreen={() => setZoom(1)}
+              gridOn={showGrid}
+              onToggleGrid={() => setShowGrid((v) => !v)}
+              rulersOn={showRulers}
+              onToggleRulers={() => setShowRulers((v) => !v)}
+              onShowSnapshots={isViewer ? undefined : () => setIsSnapshotsOpen(true)}
+              onShowA11y={() => setIsA11yOpen(true)}
+              onShowComments={() => setIsCommentsOpen(true)}
             />
 
-            {/* Canvas with Grid Background */}
-            <div className="flex-1 relative overflow-auto" style={{
-              backgroundImage: `
-                linear-gradient(to right, rgba(0,0,0,0.02) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0,0,0,0.02) 1px, transparent 1px)
-              `,
-              backgroundSize: '20px 20px'
-            }}>
+            {/* Canvas with Grid Background and Zoom */}
+            <div
+              ref={containerRef}
+              className={`flex-1 relative overflow-auto ${isPanning ? 'cursor-grabbing' : (isSpacePressed ? 'cursor-grab' : '')}`}
+              onMouseDown={(e) => {
+                if (!isSpacePressed) return
+                const target = containerRef.current
+                if (!target) return
+                setIsPanning(true)
+                panStart.current = {
+                  x: e.clientX,
+                  y: e.clientY,
+                  left: target.scrollLeft,
+                  top: target.scrollTop,
+                }
+              }}
+              onMouseMove={(e) => {
+                if (!isPanning || !panStart.current || !containerRef.current) return
+                e.preventDefault()
+                const dx = e.clientX - panStart.current.x
+                const dy = e.clientY - panStart.current.y
+                containerRef.current.scrollLeft = panStart.current.left - dx
+                containerRef.current.scrollTop = panStart.current.top - dy
+              }}
+              onMouseUp={() => { setIsPanning(false); panStart.current = null }}
+              onMouseLeave={() => { setIsPanning(false); panStart.current = null }}
+              onKeyDown={(e) => { if (e.code === 'Space') setIsSpacePressed(true) }}
+              onKeyUp={(e) => { if (e.code === 'Space') setIsSpacePressed(false) }}
+              tabIndex={0}
+            >
+              {showGrid && (
+                <div
+                  aria-hidden
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    backgroundImage: `
+                      linear-gradient(to right, rgba(0,0,0,0.04) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(0,0,0,0.04) 1px, transparent 1px)
+                    `,
+                    backgroundSize: '20px 20px'
+                  }}
+                />
+              )}
+              {showRulers && (
+                <>
+                  <div className="absolute top-0 left-0 right-0 h-6 bg-white/80 border-b border-gray-200 z-10 text-[10px] text-gray-400 flex items-end">
+                    {Array.from({ length: 200 }).map((_, i) => (
+                      <div key={i} style={{ width: 20 }} className="h-full border-r border-gray-200 flex items-end justify-end pr-0.5">
+                        {i % 5 === 0 ? i * 20 : ''}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="absolute top-0 bottom-0 left-0 w-6 bg-white/80 border-r border-gray-200 z-10 text-[10px] text-gray-400 flex flex-col items-end">
+                    {Array.from({ length: 200 }).map((_, i) => (
+                      <div key={i} style={{ height: 20 }} className="w-full border-b border-gray-200 flex items-start justify-end pr-0.5">
+                        {i % 5 === 0 ? i * 20 : ''}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              <div className="absolute inset-0" style={{ transform: `scale(${zoom})`, transformOrigin: '0 0' }}>
               <BuilderCanvas
                 page={currentPage}
                 selectedElement={selectedElement}
                 responsiveMode={responsiveMode}
                 onElementSelect={selectElement}
+                freeformMode={true}
+                zoom={zoom}
+                websiteId={currentWebsite.id}
               />
+              </div>
             </div>
           </div>
 
@@ -293,6 +459,41 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
         {/* Responsive Indicator */}
         <ResponsiveIndicator mode={responsiveMode} />
+
+        {/* Component Editor Modal */}
+        {editingComponentId && (
+          <ComponentEditorModal
+            componentId={editingComponentId}
+            onClose={() => editComponent(null)}
+          />
+        )}
+
+        {/* Global Modal */}
+        <GlobalModal />
+
+        {/* Versions Modal */}
+        {currentWebsite && (
+          <SnapshotsModal
+            websiteId={currentWebsite.id}
+            isOpen={isSnapshotsOpen}
+            onClose={() => setIsSnapshotsOpen(false)}
+          />
+        )}
+
+        {/* Accessibility Report */}
+        <AccessibilityReportModal
+          page={currentPage}
+          isOpen={isA11yOpen}
+          onClose={() => setIsA11yOpen(false)}
+        />
+
+        {/* Comments */}
+        <CommentsModal
+          page={currentPage}
+          selectedElement={selectedElement}
+          isOpen={isCommentsOpen}
+          onClose={() => setIsCommentsOpen(false)}
+        />
       </div>
     </DragDropProvider>
   )

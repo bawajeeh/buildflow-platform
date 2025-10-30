@@ -1,12 +1,18 @@
 import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
+import { cache } from '../services/redis'
 
 const router = Router()
 
 // Get all products
 router.get('/', async (req, res) => {
   try {
+    const { websiteId } = req.query as { websiteId?: string }
+    const cacheKey = websiteId ? `products:list:${websiteId}` : `products:list:all`
+    const cached = await cache.get(cacheKey)
+    if (cached) return res.json(cached)
     const products = await getPrismaClient().product.findMany({
+      where: websiteId ? { websiteId } : undefined,
       include: {
         images: true,
         variants: true,
@@ -18,6 +24,7 @@ router.get('/', async (req, res) => {
         },
       },
     })
+    await cache.set(cacheKey, products, 60)
     res.json(products)
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch products' })

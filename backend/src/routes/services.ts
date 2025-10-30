@@ -1,7 +1,26 @@
 import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
+import { cache } from '../services/redis'
 
 const router = Router()
+// GET /api/websites/:websiteId/services - list services for a website
+router.get('/websites/:websiteId/services', async (req, res) => {
+  try {
+    const prisma = getPrismaClient()
+    const cacheKey = `services:list:${req.params.websiteId}`
+    const cached = await cache.get(cacheKey)
+    if (cached) return res.json(cached)
+    const items = await prisma.service.findMany({
+      where: { websiteId: req.params.websiteId },
+      orderBy: { createdAt: 'desc' },
+    })
+    await cache.set(cacheKey, items, 60)
+    res.json(items)
+  } catch (error) {
+    console.error('Failed to fetch services:', error)
+    res.status(500).json({ error: 'Failed to fetch services' })
+  }
+})
 
 // Get all services
 router.get('/', async (req, res) => {

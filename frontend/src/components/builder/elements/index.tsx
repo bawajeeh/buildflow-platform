@@ -1,6 +1,8 @@
 import React from 'react'
 import { Element } from '@/types'
 import { cn } from '@/utils'
+import { useBuilderStore } from '@/store'
+import { resolveDataBinding } from '@/utils/dataBinding'
 
 // Types
 interface BaseElementProps {
@@ -598,7 +600,7 @@ export const BreadcrumbElement: React.FC<BaseElementProps> = ({
   )
 }
 
-// Product Grid Element
+// Product Grid Element - Phase 3: Dynamic Data Rendering
 export const ProductGridElement: React.FC<BaseElementProps> = ({
   element,
   isSelected,
@@ -607,26 +609,107 @@ export const ProductGridElement: React.FC<BaseElementProps> = ({
   onMouseEnter,
   onMouseLeave,
 }) => {
+  const { cmsData } = useBuilderStore()
+  
+  // Phase 3: Get products from dataSource or fallback to all products
+  const products = React.useMemo(() => {
+    if (element.dataSource?.type === 'products') {
+      let items = cmsData.products || []
+      if (element.dataSource.filter) {
+        Object.entries(element.dataSource.filter).forEach(([key, value]) => {
+          items = items.filter((p: any) => p[key] === value)
+        })
+      }
+      if (element.dataSource.sort) {
+        const { field, order } = element.dataSource.sort
+        items = items.slice().sort((a: any, b: any) => {
+          const av = a?.[field]; const bv = b?.[field]
+          if (av === bv) return 0
+          return (av > bv ? 1 : -1) * (order === 'desc' ? -1 : 1)
+        })
+      }
+      // Pagination support
+      if (element.dataSource.page && element.dataSource.pageSize) {
+        const page = element.dataSource.page || 1
+        const pageSize = element.dataSource.pageSize || 10
+        const start = (page - 1) * pageSize
+        items = items.slice(start, start + pageSize)
+      } else if (element.dataSource.limit) {
+        items = items.slice(0, element.dataSource.limit)
+      }
+      return items
+    }
+    return cmsData.products || []
+  }, [element.dataSource, cmsData.products])
+
   return (
     <div
       className={cn(
         'p-4 border border-dashed border-muted-foreground/25 rounded-lg',
         isSelected && 'border-primary bg-primary/5',
         isHovered && !isSelected && 'border-muted-foreground/50',
-        'cursor-pointer'
+        'cursor-pointer min-h-32'
       )}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="text-center text-muted-foreground text-sm">
-        Product Grid - Drop product cards here
-      </div>
+      {products.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {products.map((product: any, idx: number) => (
+            <div
+              key={product.id || idx}
+              className="border rounded-lg p-3 bg-white shadow-sm hover:shadow-md transition-shadow"
+            >
+              {element.dataBindings ? (
+                <>
+                  {element.dataBindings.image && (
+                    <img
+                      src={resolveDataBinding(element.dataBindings.image, { product, ...cmsData })}
+                      alt={product.name || 'Product'}
+                      className="w-full h-32 object-cover rounded mb-2"
+                    />
+                  )}
+                  {element.dataBindings.title && (
+                    <h3 className="font-semibold text-sm mb-1">
+                      {resolveDataBinding(element.dataBindings.title, { product, ...cmsData })}
+                    </h3>
+                  )}
+                  {element.dataBindings.price && (
+                    <p className="text-blue-600 font-bold">
+                      ${resolveDataBinding(element.dataBindings.price, { product, ...cmsData })}
+                    </p>
+                  )}
+                  {element.dataBindings.description && (
+                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                      {resolveDataBinding(element.dataBindings.description, { product, ...cmsData })}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <img
+                    src={product.images?.[0]?.url || '/placeholder.png'}
+                    alt={product.name || 'Product'}
+                    className="w-full h-32 object-cover rounded mb-2"
+                  />
+                  <h3 className="font-semibold text-sm mb-1">{product.name || 'Product'}</h3>
+                  <p className="text-blue-600 font-bold">${product.price || 0}</p>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center text-muted-foreground text-sm py-8">
+          {isSelected ? 'Configure Data Source in Properties panel' : 'Product Grid - No products found'}
+        </div>
+      )}
     </div>
   )
 }
 
-// Product Card Element
+// Product Card Element - Phase 3: Data Binding Support
 export const ProductCardElement: React.FC<BaseElementProps> = ({
   element,
   isSelected,
@@ -635,6 +718,9 @@ export const ProductCardElement: React.FC<BaseElementProps> = ({
   onMouseEnter,
   onMouseLeave,
 }) => {
+  const { cmsData } = useBuilderStore()
+  const currentItem = (element.props as any)?.currentItem
+  
   return (
     <div
       className={cn(
@@ -647,9 +733,36 @@ export const ProductCardElement: React.FC<BaseElementProps> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="text-center text-muted-foreground text-sm">
-        Product Card
-      </div>
+      {element.dataBindings && currentItem ? (
+        <div className="border rounded-lg p-3 bg-white">
+          {element.dataBindings.image && (
+            <img
+              src={resolveDataBinding(element.dataBindings.image, { product: currentItem, ...cmsData })}
+              alt={currentItem.name || 'Product'}
+              className="w-full h-32 object-cover rounded mb-2"
+            />
+          )}
+          {element.dataBindings.title && (
+            <h3 className="font-semibold text-sm mb-1">
+              {resolveDataBinding(element.dataBindings.title, { product: currentItem, ...cmsData })}
+            </h3>
+          )}
+          {element.dataBindings.price && (
+            <p className="text-blue-600 font-bold">
+              ${resolveDataBinding(element.dataBindings.price, { product: currentItem, ...cmsData })}
+            </p>
+          )}
+          {element.dataBindings.description && (
+            <p className="text-xs text-gray-600 mt-1">
+              {resolveDataBinding(element.dataBindings.description, { product: currentItem, ...cmsData })}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="text-center text-muted-foreground text-sm">
+          Product Card {isSelected && '- Configure bindings'}
+        </div>
+      )}
     </div>
   )
 }
@@ -682,7 +795,7 @@ export const CalendarElement: React.FC<BaseElementProps> = ({
   )
 }
 
-// Service List Element
+// Service List Element - Phase 3: Dynamic Data Rendering
 export const ServiceListElement: React.FC<BaseElementProps> = ({
   element,
   isSelected,
@@ -691,21 +804,83 @@ export const ServiceListElement: React.FC<BaseElementProps> = ({
   onMouseEnter,
   onMouseLeave,
 }) => {
+  const { cmsData } = useBuilderStore()
+  
+  // Phase 3: Get services from dataSource
+  const services = React.useMemo(() => {
+    if (element.dataSource?.type === 'services') {
+      let items = cmsData.services || []
+      if (element.dataSource.filter) {
+        Object.entries(element.dataSource.filter).forEach(([key, value]) => {
+          items = items.filter((s: any) => s[key] === value)
+        })
+      }
+      // Pagination support
+      if (element.dataSource.page && element.dataSource.pageSize) {
+        const page = element.dataSource.page || 1
+        const pageSize = element.dataSource.pageSize || 10
+        const start = (page - 1) * pageSize
+        items = items.slice(start, start + pageSize)
+      } else if (element.dataSource.limit) {
+        items = items.slice(0, element.dataSource.limit)
+      }
+      return items
+    }
+    return cmsData.services || []
+  }, [element.dataSource, cmsData.services])
+
   return (
     <div
       className={cn(
         'p-4 border border-dashed border-muted-foreground/25 rounded-lg',
         isSelected && 'border-primary bg-primary/5',
         isHovered && !isSelected && 'border-muted-foreground/50',
-        'cursor-pointer'
+        'cursor-pointer min-h-32'
       )}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="text-center text-muted-foreground text-sm">
-        Service List
-      </div>
+      {services.length > 0 ? (
+        <div className="space-y-2">
+          {services.map((service: any, idx: number) => (
+            <div
+              key={service.id || idx}
+              className="border rounded-lg p-3 bg-white shadow-sm hover:shadow-md transition-shadow"
+            >
+              {element.dataBindings ? (
+                <>
+                  {element.dataBindings.name && (
+                    <h3 className="font-semibold text-sm mb-1">
+                      {resolveDataBinding(element.dataBindings.name, { service, ...cmsData })}
+                    </h3>
+                  )}
+                  {element.dataBindings.description && (
+                    <p className="text-xs text-gray-600">
+                      {resolveDataBinding(element.dataBindings.description, { service, ...cmsData })}
+                    </p>
+                  )}
+                  {element.dataBindings.price && (
+                    <p className="text-blue-600 font-bold mt-1">
+                      ${resolveDataBinding(element.dataBindings.price, { service, ...cmsData })}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <h3 className="font-semibold text-sm mb-1">{service.name || 'Service'}</h3>
+                  <p className="text-xs text-gray-600">{service.description || ''}</p>
+                  {service.price && <p className="text-blue-600 font-bold mt-1">${service.price}</p>}
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center text-muted-foreground text-sm py-8">
+          {isSelected ? 'Configure Data Source in Properties panel' : 'Service List - No services found'}
+        </div>
+      )}
     </div>
   )
 }
@@ -738,7 +913,7 @@ export const BookingFormElement: React.FC<BaseElementProps> = ({
   )
 }
 
-// Blog Grid Element
+// Blog Grid Element - Phase 3: Dynamic Data Rendering
 export const BlogGridElement: React.FC<BaseElementProps> = ({
   element,
   isSelected,
@@ -747,21 +922,97 @@ export const BlogGridElement: React.FC<BaseElementProps> = ({
   onMouseEnter,
   onMouseLeave,
 }) => {
+  const { cmsData } = useBuilderStore()
+  
+  // Phase 3: Get blog posts from dataSource
+  const blogPosts = React.useMemo(() => {
+    if (element.dataSource?.type === 'blog') {
+      let items = cmsData.blog || []
+      if (element.dataSource.filter) {
+        Object.entries(element.dataSource.filter).forEach(([key, value]) => {
+          items = items.filter((p: any) => p[key] === value)
+        })
+      }
+      if (element.dataSource.sort) {
+        const { field, order } = element.dataSource.sort
+        items = items.slice().sort((a: any, b: any) => {
+          const av = a?.[field]; const bv = b?.[field]
+          if (av === bv) return 0
+          return (av > bv ? 1 : -1) * (order === 'desc' ? -1 : 1)
+        })
+      }
+      // Pagination support
+      if (element.dataSource.page && element.dataSource.pageSize) {
+        const page = element.dataSource.page || 1
+        const pageSize = element.dataSource.pageSize || 10
+        const start = (page - 1) * pageSize
+        items = items.slice(start, start + pageSize)
+      } else if (element.dataSource.limit) {
+        items = items.slice(0, element.dataSource.limit)
+      }
+      return items
+    }
+    return cmsData.blog || []
+  }, [element.dataSource, cmsData.blog])
+
   return (
     <div
       className={cn(
         'p-4 border border-dashed border-muted-foreground/25 rounded-lg',
         isSelected && 'border-primary bg-primary/5',
         isHovered && !isSelected && 'border-muted-foreground/50',
-        'cursor-pointer'
+        'cursor-pointer min-h-32'
       )}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="text-center text-muted-foreground text-sm">
-        Blog Grid - Drop blog cards here
-      </div>
+      {blogPosts.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {blogPosts.map((post: any, idx: number) => (
+            <div
+              key={post.id || idx}
+              className="border rounded-lg p-3 bg-white shadow-sm hover:shadow-md transition-shadow"
+            >
+              {element.dataBindings ? (
+                <>
+                  {element.dataBindings.image && (
+                    <img
+                      src={resolveDataBinding(element.dataBindings.image, { blog: post, ...cmsData })}
+                      alt={post.title || 'Blog Post'}
+                      className="w-full h-32 object-cover rounded mb-2"
+                    />
+                  )}
+                  {element.dataBindings.title && (
+                    <h3 className="font-semibold text-sm mb-1">
+                      {resolveDataBinding(element.dataBindings.title, { blog: post, ...cmsData })}
+                    </h3>
+                  )}
+                  {element.dataBindings.excerpt && (
+                    <p className="text-xs text-gray-600 mt-1 line-clamp-2">
+                      {resolveDataBinding(element.dataBindings.excerpt, { blog: post, ...cmsData })}
+                    </p>
+                  )}
+                  {element.dataBindings.date && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      {resolveDataBinding(element.dataBindings.date, { blog: post, ...cmsData })}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <h3 className="font-semibold text-sm mb-1">{post.title || 'Blog Post'}</h3>
+                  <p className="text-xs text-gray-600">{post.excerpt || post.description || ''}</p>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center text-muted-foreground text-sm py-8">
+          {isSelected ? 'Configure Data Source in Properties panel' : 'Blog Grid - No posts found'}
+        </div>
+      )}
     </div>
   )
 }
@@ -794,7 +1045,7 @@ export const BlogPostElement: React.FC<BaseElementProps> = ({
   )
 }
 
-// Blog Card Element
+// Blog Card Element - Phase 3: Data Binding Support
 export const BlogCardElement: React.FC<BaseElementProps> = ({
   element,
   isSelected,
@@ -803,6 +1054,9 @@ export const BlogCardElement: React.FC<BaseElementProps> = ({
   onMouseEnter,
   onMouseLeave,
 }) => {
+  const { cmsData } = useBuilderStore()
+  const currentItem = (element.props as any)?.currentItem
+  
   return (
     <div
       className={cn(
@@ -815,9 +1069,31 @@ export const BlogCardElement: React.FC<BaseElementProps> = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="text-center text-muted-foreground text-sm">
-        Blog Card
-      </div>
+      {element.dataBindings && currentItem ? (
+        <div className="border rounded-lg p-3 bg-white">
+          {element.dataBindings.image && (
+            <img
+              src={resolveDataBinding(element.dataBindings.image, { blog: currentItem, ...cmsData })}
+              alt={currentItem.title || 'Blog Post'}
+              className="w-full h-32 object-cover rounded mb-2"
+            />
+          )}
+          {element.dataBindings.title && (
+            <h3 className="font-semibold text-sm mb-1">
+              {resolveDataBinding(element.dataBindings.title, { blog: currentItem, ...cmsData })}
+            </h3>
+          )}
+          {element.dataBindings.excerpt && (
+            <p className="text-xs text-gray-600 mt-1">
+              {resolveDataBinding(element.dataBindings.excerpt, { blog: currentItem, ...cmsData })}
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="text-center text-muted-foreground text-sm">
+          Blog Card {isSelected && '- Configure bindings'}
+        </div>
+      )}
     </div>
   )
 }

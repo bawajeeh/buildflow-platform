@@ -12,6 +12,10 @@ export const API_CONFIG = {
       PROFILE: `${API_BASE_URL}/api/auth/profile`,
       REFRESH: `${API_BASE_URL}/api/auth/refresh`,
     },
+    PUBLISH: {
+      WEBSITE: (websiteId: string) => `${API_BASE_URL}/api/publish/website/${websiteId}`,
+      REVALIDATE: `${API_BASE_URL}/api/revalidate`,
+    },
     WEBSITES: {
       LIST: `${API_BASE_URL}/api/websites`,
       CREATE: `${API_BASE_URL}/api/websites`,
@@ -20,6 +24,8 @@ export const API_CONFIG = {
       DELETE: (id: string) => `${API_BASE_URL}/api/websites/${id}`,
       PUBLISH: (id: string) => `${API_BASE_URL}/api/websites/${id}/publish`,
       UNPUBLISH: (id: string) => `${API_BASE_URL}/api/websites/${id}/unpublish`,
+      GET_THEME: (id: string) => `${API_BASE_URL}/api/websites/${id}/theme`,
+      UPDATE_THEME: (id: string) => `${API_BASE_URL}/api/websites/${id}/theme`,
     },
     PAGES: {
       LIST: (websiteId: string) => `${API_BASE_URL}/api/websites/${websiteId}/pages`,
@@ -47,6 +53,42 @@ export const API_CONFIG = {
       CREATE: (websiteId: string) => `${API_BASE_URL}/api/websites/${websiteId}/services`,
       UPDATE: (id: string) => `${API_BASE_URL}/api/services/${id}`,
       DELETE: (id: string) => `${API_BASE_URL}/api/services/${id}`,
+    },
+    COMPONENTS: {
+      LIST: (websiteId: string) => `${API_BASE_URL}/api/components/website/${websiteId}`,
+      CREATE: `${API_BASE_URL}/api/components`,
+      GET: (id: string) => `${API_BASE_URL}/api/components/${id}`,
+      UPDATE: (id: string) => `${API_BASE_URL}/api/components/${id}`,
+      DELETE: (id: string) => `${API_BASE_URL}/api/components/${id}`,
+    },
+    SNAPSHOTS: {
+      LIST: (websiteId: string) => `${API_BASE_URL}/api/websites/${websiteId}/snapshots`,
+      CREATE: (websiteId: string) => `${API_BASE_URL}/api/websites/${websiteId}/snapshots`,
+      RESTORE: (websiteId: string, snapshotId: string) => `${API_BASE_URL}/api/websites/${websiteId}/snapshots/${snapshotId}/restore`,
+    },
+    TEMPLATES: {
+      LIST: `${API_BASE_URL}/api/templates`,
+      GET: (id: string) => `${API_BASE_URL}/api/templates/${id}`,
+      EXPORT_WEBSITE: (websiteId: string) => `${API_BASE_URL}/api/templates/export/website/${websiteId}`,
+      IMPORT_TO_WEBSITE: `${API_BASE_URL}/api/templates/import`,
+    },
+    WEBHOOK: {
+      GET: (websiteId: string) => `${API_BASE_URL}/api/websites/${websiteId}/webhook`,
+      SET: (websiteId: string) => `${API_BASE_URL}/api/websites/${websiteId}/webhook`,
+    },
+    BACKUPS: {
+      LIST: (websiteId: string) => `${API_BASE_URL}/api/websites/${websiteId}/backups`,
+      CREATE: (websiteId: string) => `${API_BASE_URL}/api/websites/${websiteId}/backups`,
+      RESTORE: (websiteId: string, backupId: string) => `${API_BASE_URL}/api/websites/${websiteId}/backups/${backupId}/restore`,
+    },
+    TEAMS: {
+      LIST: (websiteId: string) => `${API_BASE_URL}/api/websites/${websiteId}/collaborators`,
+      ADD: (websiteId: string) => `${API_BASE_URL}/api/websites/${websiteId}/collaborators`,
+      REMOVE: (websiteId: string, userId: string) => `${API_BASE_URL}/api/websites/${websiteId}/collaborators/${userId}`,
+    },
+    BILLING: {
+      PLANS: `${API_BASE_URL}/api/billing/plans`,
+      CHECKOUT: `${API_BASE_URL}/api/billing/checkout`,
     },
   },
 }

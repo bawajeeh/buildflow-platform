@@ -69,6 +69,7 @@ model Website {
   customers Customer[]
   analytics Analytics[]
   media     Media[]
+  components Component[]
   settings  WebsiteSettings?
 
   @@map("websites")
@@ -442,4 +443,19 @@ model Media {
   updatedAt   DateTime @updatedAt
 
   @@map("media")
+}
+
+// Component Management
+model Component {
+  id        String   @id @default(cuid())
+  websiteId String
+  website   Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  name      String
+  elements  String   @default("[]") // JSON as string
+  variants  String?  // JSON as string for variant definitions
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([websiteId, name])
+  @@map("components")
 }

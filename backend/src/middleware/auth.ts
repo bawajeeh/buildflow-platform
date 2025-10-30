@@ -93,3 +93,37 @@ export const requireAdmin = requireRole(['ADMIN', 'SUPER_ADMIN'])
 
 // Super admin only middleware
 export const requireSuperAdmin = requireRole(['SUPER_ADMIN'])
+
+// Website ownership or elevated role guard
+export const requireWebsiteAccess = () => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ success: false, error: 'Authentication required' })
+      }
+      // Admins can access
+      if (req.user.role === 'ADMIN' || req.user.role === 'SUPER_ADMIN') {
+        return next()
+      }
+      const websiteId = (req.params.websiteId || (req.body && req.body.websiteId)) as string | undefined
+      if (!websiteId) {
+        return res.status(400).json({ success: false, error: 'websiteId is required' })
+      }
+      const prisma = getPrismaClient()
+      const website = await prisma.website.findUnique({
+        where: { id: websiteId },
+        select: { id: true, userId: true },
+      })
+      if (!website) {
+        return res.status(404).json({ success: false, error: 'Website not found' })
+      }
+      if (website.userId !== req.user.id) {
+        return res.status(403).json({ success: false, error: 'Insufficient permissions' })
+      }
+      next()
+    } catch (error) {
+      console.error('requireWebsiteAccess error:', error)
+      res.status(500).json({ success: false, error: 'Authorization check failed' })
+    }
+  }
+}

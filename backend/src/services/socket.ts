@@ -27,6 +27,7 @@ interface CursorData {
 // Room management
 const rooms = new Map<string, Set<string>>()
 const userSockets = new Map<string, string>()
+const locksByRoom = new Map<string, Map<string, string>>() // roomId -> (elementId -> userId)
 
 // Initialize Socket.IO server
 export const initializeSocket = (io: SocketIOServer) => {
@@ -119,6 +120,14 @@ export const initializeSocket = (io: SocketIOServer) => {
 
       console.log(`Element update from ${socket.userName}:`, data.elementId)
 
+      // Enforce locks: if element is locked by another user, deny
+      const locks = locksByRoom.get(socket.currentRoom)
+      const owner = locks?.get(data.elementId)
+      if (owner && owner !== socket.userId) {
+        socket.emit('element-lock-denied', { elementId: data.elementId, owner })
+        return
+      }
+
       // Broadcast to other users in the room
       socket.to(socket.currentRoom).emit('element-updated', {
         elementId: data.elementId,
@@ -143,6 +152,34 @@ export const initializeSocket = (io: SocketIOServer) => {
         userId: socket.userId,
         timestamp: data.timestamp,
       })
+    })
+
+    // Element locking
+    socket.on('lock-element', (data: { elementId: string }) => {
+      if (!socket.currentRoom || !socket.userId) return
+      const room = socket.currentRoom
+      if (!locksByRoom.has(room)) locksByRoom.set(room, new Map())
+      const locks = locksByRoom.get(room)!
+      if (!locks.has(data.elementId)) {
+        locks.set(data.elementId, socket.userId)
+        socket.to(room).emit('element-locked', { elementId: data.elementId, userId: socket.userId })
+      } else {
+        // If lock owned by someone else, inform requester
+        const owner = locks.get(data.elementId)
+        socket.emit('element-lock-denied', { elementId: data.elementId, owner })
+      }
+    })
+
+    socket.on('unlock-element', (data: { elementId: string }) => {
+      if (!socket.currentRoom || !socket.userId) return
+      const room = socket.currentRoom
+      const locks = locksByRoom.get(room)
+      if (!locks) return
+      const owner = locks.get(data.elementId)
+      if (owner === socket.userId) {
+        locks.delete(data.elementId)
+        socket.to(room).emit('element-unlocked', { elementId: data.elementId, userId: socket.userId })
+      }
     })
 
     // Cursor movement
@@ -190,6 +227,16 @@ export const initializeSocket = (io: SocketIOServer) => {
         if (socket.currentRoom) {
           socket.to(socket.currentRoom).emit('user-left', socket.userId)
           removeUserFromRoom(socket.currentRoom, socket.userId)
+          // Release locks held by this user
+          const locks = locksByRoom.get(socket.currentRoom)
+          if (locks) {
+            for (const [elId, owner] of Array.from(locks.entries())) {
+              if (owner === socket.userId) {
+                locks.delete(elId)
+                socket.to(socket.currentRoom).emit('element-unlocked', { elementId: elId, userId: socket.userId })
+              }
+            }
+          }
         }
       }
     })

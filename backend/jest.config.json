@@ -1,6 +1,4 @@
 {
-  "name": "jest.config",
-  "version": "1.0.0",
   "preset": "ts-jest",
   "testEnvironment": "node",
   "roots": ["<rootDir>/src"],
@@ -20,7 +18,7 @@
   "coverageReporters": ["text", "lcov", "html"],
   "setupFilesAfterEnv": ["<rootDir>/src/__tests__/setup.ts"],
   "testTimeout": 10000,
-  "moduleNameMapping": {
+  "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/src/$1"
   }
 }

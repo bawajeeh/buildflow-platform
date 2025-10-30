@@ -18,11 +18,21 @@ import templateRoutes from './routes/templates'
 import productRoutes from './routes/products'
 import orderRoutes from './routes/orders'
 import serviceRoutes from './routes/services'
+import blogRoutes from './routes/blog'
 import bookingRoutes from './routes/bookings'
 import customerRoutes from './routes/customers'
 import analyticsRoutes from './routes/analytics'
 import mediaRoutes from './routes/media'
 import settingsRoutes from './routes/settings'
+import componentRoutes from './routes/components'
+import publishRoutes from './routes/publish'
+import versioningRoutes from './routes/versioning'
+import seoRoutes from './routes/seo'
+import activityRoutes from './routes/activity'
+import webhooksRoutes from './routes/webhooks'
+import backupsRoutes from './routes/backups'
+import teamsRoutes from './routes/teams'
+import billingRoutes from './routes/billing'
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler'
@@ -128,11 +138,21 @@ app.use('/api/templates', templateRoutes)
 app.use('/api/products', authMiddleware, productRoutes)
 app.use('/api/orders', authMiddleware, orderRoutes)
 app.use('/api/services', authMiddleware, serviceRoutes)
+app.use('/api', authMiddleware, blogRoutes)
 app.use('/api/bookings', authMiddleware, bookingRoutes)
 app.use('/api/customers', authMiddleware, customerRoutes)
 app.use('/api/analytics', authMiddleware, analyticsRoutes)
 app.use('/api/media', authMiddleware, mediaRoutes)
 app.use('/api/settings', authMiddleware, settingsRoutes)
+app.use('/api/components', authMiddleware, componentRoutes)
+app.use('/api', authMiddleware, publishRoutes)
+app.use('/api', authMiddleware, versioningRoutes)
+app.use('/api', seoRoutes)
+app.use('/api', authMiddleware, activityRoutes)
+app.use('/api', authMiddleware, webhooksRoutes)
+app.use('/api', authMiddleware, backupsRoutes)
+app.use('/api', authMiddleware, teamsRoutes)
+app.use('/api', billingRoutes)
 
 // Error handling
 app.use(notFound)

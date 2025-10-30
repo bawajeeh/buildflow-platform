@@ -119,6 +119,52 @@ export interface Element {
   order: number;
   isVisible: boolean;
   responsive: ResponsiveSettings;
+  // Phase 3: Data binding & CMS
+  dataSource?: DataSource; // e.g., { type: 'products', filter: { category: 'electronics' } }
+  dataBindings?: Record<string, string>; // e.g., { text: '{{product.name}}', image: '{{product.image}}' }
+  condition?: ConditionalRule; // Show/hide based on data
+  loop?: LoopConfig; // Repeat element for each item
+  animations?: AnimationConfig;
+  interactions?: InteractionConfig;
+  customCSS?: string;
+  customJS?: string;
+}
+
+export interface DataSource {
+  type: 'products' | 'blog' | 'services' | 'custom';
+  filter?: Record<string, any>;
+  limit?: number;
+  sort?: { field: string; order: 'asc' | 'desc' };
+}
+
+export interface ConditionalRule {
+  field: string; // e.g., 'product.price'
+  operator: 'eq' | 'ne' | 'gt' | 'gte' | 'lt' | 'lte' | 'contains' | 'exists';
+  value: any;
+}
+
+export interface LoopConfig {
+  dataSource: DataSource;
+  template: string; // Element ID to repeat
+}
+
+export interface AnimationConfig {
+  entrance?: 'fade' | 'slide' | 'zoom' | 'bounce' | 'none';
+  exit?: 'fade' | 'slide' | 'zoom' | 'bounce' | 'none';
+  delay?: number;
+  duration?: number;
+}
+
+export interface InteractionConfig {
+  onClick?: {
+    type: 'navigate' | 'modal' | 'toggle' | 'custom';
+    target?: string;
+    action?: string;
+  };
+  onHover?: {
+    type: 'tooltip' | 'preview' | 'highlight';
+    content?: string;
+  };
 }
 
 export enum ElementType {

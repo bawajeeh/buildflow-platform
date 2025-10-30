@@ -1,6 +1,7 @@
 // Real-time communication service using Socket.IO
 
 import { io, Socket } from 'socket.io-client'
+import { useAuthStore } from '@/store'
 
 interface RealTimeConfig {
   serverUrl: string
@@ -53,10 +54,15 @@ class RealTimeService {
   connect(): void {
     if (this.socket?.connected) return
 
+    const token = (() => {
+      try { return useAuthStore.getState().token || null } catch { return null }
+    })()
+
     this.socket = io(this.config.serverUrl, {
       transports: ['websocket', 'polling'],
       timeout: 20000,
-      forceNew: true
+      forceNew: true,
+      auth: token ? { token } : undefined,
     })
 
     this.setupEventListeners()
@@ -97,19 +103,28 @@ class RealTimeService {
     })
 
     // Collaboration events
-    this.socket.on('element:updated', (data: CollaborationData) => {
+    this.socket.on('element-updated', (data: CollaborationData) => {
       this.handleElementUpdate(data)
     })
+    this.socket.on('element-locked', (data: { elementId: string; userId: string }) => {
+      window.dispatchEvent(new CustomEvent('realtime:element:locked', { detail: data }))
+    })
+    this.socket.on('element-unlocked', (data: { elementId: string; userId: string }) => {
+      window.dispatchEvent(new CustomEvent('realtime:element:unlocked', { detail: data }))
+    })
+    this.socket.on('element-lock-denied', (data: { elementId: string; owner: string }) => {
+      window.dispatchEvent(new CustomEvent('realtime:element:lockdenied', { detail: data }))
+    })
 
-    this.socket.on('cursor:moved', (data: CursorData) => {
+    this.socket.on('cursor-moved', (data: CursorData) => {
       this.handleCursorMove(data)
     })
 
-    this.socket.on('user:joined', (data: UserPresence) => {
+    this.socket.on('user-joined', (data: UserPresence) => {
       this.handleUserJoined(data)
     })
 
-    this.socket.on('user:left', (data: UserPresence) => {
+    this.socket.on('user-left', (data: UserPresence) => {
       this.handleUserLeft(data)
     })
 
@@ -147,14 +162,14 @@ class RealTimeService {
   joinWebsite(websiteId: string): void {
     if (!this.socket?.connected) return
 
-    this.socket.emit('join:website', { websiteId })
+    this.socket.emit('join-room', websiteId)
   }
 
   // Leave a website room
   leaveWebsite(websiteId: string): void {
     if (!this.socket?.connected) return
 
-    this.socket.emit('leave:website', { websiteId })
+    this.socket.emit('leave-room', websiteId)
   }
 
   // Send element update
@@ -168,7 +183,17 @@ class RealTimeService {
       timestamp: new Date()
     }
 
-    this.socket.emit('element:update', { ...data, websiteId })
+    this.socket.emit('element-update', data)
+  }
+
+  lockElement(elementId: string): void {
+    if (!this.socket?.connected) return
+    this.socket.emit('lock-element', { elementId })
+  }
+
+  unlockElement(elementId: string): void {
+    if (!this.socket?.connected) return
+    this.socket.emit('unlock-element', { elementId })
   }
 
   // Send cursor position
@@ -182,7 +207,7 @@ class RealTimeService {
       timestamp: new Date()
     }
 
-    this.socket.emit('cursor:move', { ...data, websiteId })
+    this.socket.emit('cursor-move', data)
   }
 
   // Send typing indicator

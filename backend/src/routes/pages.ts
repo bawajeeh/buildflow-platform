@@ -1,19 +1,25 @@
 import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
+import { pushActivity } from './activity'
 
 const router = Router()
 
 // Get all pages for a website by website ID
 router.get('/:websiteId/pages', async (req, res) => {
   try {
-    const pages = await getPrismaClient().page.findMany({
-      where: { websiteId: req.params.websiteId },
+    const { locale } = req.query as { locale?: string }
+    const websiteId = req.params.websiteId
+    let pages = await getPrismaClient().page.findMany({
+      where: { websiteId },
       include: {
         elements: {
           orderBy: { order: 'asc' },
         },
       },
     })
+    if (locale && typeof locale === 'string') {
+      pages = pages.filter(p => p.slug === locale || p.slug.startsWith(`${locale}/`))
+    }
     
     // Parse JSON fields for elements
     const parsedPages = pages.map(page => ({
@@ -36,17 +42,18 @@ router.get('/:websiteId/pages', async (req, res) => {
 // Create page for a website
 router.post('/:websiteId/pages', async (req, res) => {
   try {
-    const { name, slug, title, description, isHomePage } = req.body
+    const { name, slug, title, description, isHomePage, locale } = req.body
     
     const page = await getPrismaClient().page.create({
       data: {
         websiteId: req.params.websiteId,
         name,
-        slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+        slug: (locale ? `${locale}/` : '') + (slug || name.toLowerCase().replace(/\s+/g, '-')).replace(/^\//, ''),
         isHome: isHomePage || false,
         isPublished: false,
       },
     })
+    pushActivity(req.params.websiteId, 'page.created', { pageId: page.id, name: page.name, slug: page.slug })
     
     res.status(201).json(page)
   } catch (error) {
@@ -141,6 +148,10 @@ router.put('/:id', async (req, res) => {
         isPublished,
       },
     })
+    try {
+      const websiteId = page.websiteId
+      pushActivity(websiteId, 'page.updated', { pageId: page.id, name: page.name })
+    } catch {}
     
     res.json(page)
   } catch (error) {
@@ -151,9 +162,10 @@ router.put('/:id', async (req, res) => {
 // Delete page
 router.delete('/:id', async (req, res) => {
   try {
-    await getPrismaClient().page.delete({
+    const deleted = await getPrismaClient().page.delete({
       where: { id: req.params.id },
     })
+    try { pushActivity(deleted.websiteId, 'page.deleted', { pageId: deleted.id, name: deleted.name }) } catch {}
     
     res.json({ message: 'Page deleted successfully' })
   } catch (error) {

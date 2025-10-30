@@ -429,6 +429,7 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
 interface BuilderState {
   pages: Page[]
   currentPage: Page | null
+  currentLocale: string
   selectedElement: Element | null
   hoveredElement: Element | null
   isPreviewMode: boolean
@@ -436,7 +437,34 @@ interface BuilderState {
   history: Element[][] // For undo/redo
   historyIndex: number // Current position in history
   clipboard: Element | null // For copy/paste
+  lastPointerPosition: { x: number; y: number }
+  themeTokens: {
+    colors: { primary: string; secondary: string; text: string; background: string }
+    typography: { fontFamily: string; baseSize: number }
+    spacing: { base: number; radius: number }
+  }
+  setThemeToken: (path: string, value: string | number) => void
+  loadThemeTokens: (websiteId: string) => Promise<void>
+  saveThemeTokens: (websiteId: string) => Promise<void>
+  // Components (Phase 2)
+  components: Record<string, {
+    id: string
+    name: string
+    elements: Element[]
+    variants?: Record<string, Element[]>
+  }>
+  editingComponentId: string | null
+  createComponentFromElements: (name: string, elementIds: string[]) => Promise<string>
+  loadComponents: (websiteId: string) => Promise<void>
+  instantiateComponent: (componentId: string, pageId: string, position?: { x?: number; y?: number }) => Promise<void>
+  setPointerPosition: (pos: { x: number; y: number }) => void
+  replaceAssetInUse: (oldUrl: string, newUrl: string, scope: 'page'|'site') => void
+  editComponent: (componentId: string) => void
+  updateComponent: (componentId: string, updates: { name?: string; elements?: Element[] }) => Promise<void>
+  deleteComponent: (componentId: string) => Promise<void>
+  renameComponent: (componentId: string, newName: string) => void
   fetchPages: (websiteId: string) => Promise<void>
+  setLocale: (locale: string) => void
   createPage: (pageData: {
     name: string
     slug: string
@@ -466,6 +494,7 @@ interface BuilderState {
 export const useBuilderStore = create<BuilderState>()((set, get) => ({
   pages: [],
   currentPage: null,
+  currentLocale: 'en',
   selectedElement: null,
   hoveredElement: null,
   isPreviewMode: false,
@@ -473,12 +502,328 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
   history: [],
   historyIndex: -1,
   clipboard: null,
+  lastPointerPosition: { x: 0, y: 0 },
+  themeTokens: {
+    colors: { primary: '#3B82F6', secondary: '#8B5CF6', text: '#111827', background: '#FFFFFF' },
+    typography: { fontFamily: 'Inter, system-ui, sans-serif', baseSize: 16 },
+    spacing: { base: 8, radius: 8 },
+  },
+
+  setThemeToken: (path: string, value: string | number) => {
+    set((state) => {
+      const clone: any = JSON.parse(JSON.stringify(state.themeTokens))
+      const keys = path.split('.')
+      let cur = clone
+      for (let i = 0; i < keys.length - 1; i++) cur = cur[keys[i]]
+      cur[keys[keys.length - 1]] = value
+      return { themeTokens: clone }
+    })
+  },
+
+  loadThemeTokens: async (websiteId: string) => {
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/websites/${websiteId}/theme`, { credentials: 'include' })
+      if (!response.ok) return
+      const tokens = await response.json()
+      set({ themeTokens: tokens })
+    } catch (e) {
+      // ignore
+    }
+  },
+
+  saveThemeTokens: async (websiteId: string) => {
+    try {
+      const body = JSON.stringify(get().themeTokens)
+      const { token } = useAuthStore.getState()
+      await fetch(`${API_CONFIG.BASE_URL}/api/websites/${websiteId}/theme`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body,
+      })
+    } catch (e) {
+      // ignore
+    }
+  },
+
+  // Components
+  components: {},
+  editingComponentId: null,
+
+  // Phase 3: CMS Data
+  cmsData: { products: [], blog: [], services: [] },
+
+  loadCMSData: async (websiteId: string) => {
+    const { token } = useAuthStore.getState()
+    try {
+      const [productsRes, servicesRes, blogRes] = await Promise.all([
+        fetch(`${API_CONFIG.BASE_URL}/api/websites/${websiteId}/products`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }).catch(() => null),
+        fetch(`${API_CONFIG.BASE_URL}/api/websites/${websiteId}/services`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }).catch(() => null),
+        fetch(`${API_CONFIG.BASE_URL}/api/websites/${websiteId}/blog`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        }).catch(() => null),
+      ])
+      const products = productsRes?.ok ? await productsRes.json().catch(() => []) : []
+      const services = servicesRes?.ok ? await servicesRes.json().catch(() => []) : []
+      const blog = blogRes?.ok ? await blogRes.json().catch(() => []) : []
+      set({ cmsData: { products: Array.isArray(products) ? products : [], blog: Array.isArray(blog) ? blog : [], services: Array.isArray(services) ? services : [] } })
+    } catch (error) {
+      console.error('Failed to load CMS data:', error)
+    }
+  },
+
+  createComponentFromElements: async (name: string, elementIds: string[]) => {
+    const { currentPage, currentWebsite } = get()
+    if (!currentPage || !currentWebsite) throw new Error('No page or website selected')
+    const elements = (currentPage.elements || []).filter(el => elementIds.includes(el.id))
+    if (elements.length === 0) throw new Error('No elements selected')
+    const { token } = useAuthStore.getState()
+    try {
+      const res = await fetch(API_CONFIG.ENDPOINTS.COMPONENTS.CREATE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ websiteId: currentWebsite.id, name, elements: JSON.parse(JSON.stringify(elements)) }),
+      })
+      if (!res.ok) throw new Error('Failed to save component')
+      const comp = await res.json()
+      set((state) => ({
+        components: { ...state.components, [comp.id]: { id: comp.id, name: comp.name, elements: comp.elements, variants: comp.variants } },
+      }))
+      return comp.id
+    } catch (error) {
+      // Fallback to local-only
+      const id = `comp-${Date.now()}`
+      set((state) => ({
+        components: { ...state.components, [id]: { id, name, elements: JSON.parse(JSON.stringify(elements)) } },
+      }))
+      return id
+    }
+  },
+
+  loadComponents: async (websiteId: string) => {
+    const { token } = useAuthStore.getState()
+    try {
+      const res = await fetch(API_CONFIG.ENDPOINTS.COMPONENTS.LIST(websiteId), {
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
+      if (!res.ok) return
+      const comps = await res.json()
+      const map: Record<string, any> = {}
+      comps.forEach((c: any) => {
+        map[c.id] = { id: c.id, name: c.name, elements: c.elements || [], variants: c.variants }
+      })
+      set({ components: map })
+    } catch (error) {
+      console.error('Failed to load components:', error)
+    }
+  },
+
+  instantiateComponent: async (componentId: string, pageId: string, position?: { x?: number; y?: number }) => {
+    const { components, pages } = get()
+    const comp = components[componentId]
+    if (!comp) throw new Error('Component not found')
+    const target = pages.find(p => p.id === pageId)
+    if (!target) throw new Error('Target page not found')
+    const baseOrder = (target.elements?.length || 0)
+    const cloned = comp.elements.map((el, idx) => ({
+      ...JSON.parse(JSON.stringify(el)),
+      id: `inst-${componentId}-${Date.now()}-${idx}`,
+      order: baseOrder + idx,
+      pageId: pageId,
+      props: {
+        ...(position ? { ...(el.props||{}), x: position.x ?? (el.props as any)?.x, y: position.y ?? (el.props as any)?.y } : (el.props||{})),
+        componentId,
+        instanceId: `inst-${Date.now()}`,
+        componentBase: { props: el.props || {}, styles: el.styles || {} },
+      },
+    }))
+    set((state) => ({
+      pages: state.pages.map(p => p.id === pageId ? { ...p, elements: [ ...(p.elements||[]), ...cloned ] } : p),
+      currentPage: state.currentPage?.id === pageId ? { ...state.currentPage, elements: [ ...(state.currentPage.elements||[]), ...cloned ] } : state.currentPage,
+    }))
+  },
+
+  setPointerPosition: (pos: { x: number; y: number }) => {
+    set({ lastPointerPosition: pos })
+  },
+
+  replaceAssetInUse: (oldUrl: string, newUrl: string, scope: 'page'|'site') => {
+    const { currentPage, pages } = get()
+    if (scope === 'page') {
+      if (!currentPage) return
+      const nextEls = (currentPage.elements || []).map(el => {
+        if (typeof (el.props as any)?.src === 'string' && (el.props as any).src === oldUrl) {
+          return { ...el, props: { ...(el.props||{}), src: newUrl } }
+        }
+        return el
+      })
+      set({ currentPage: { ...currentPage, elements: nextEls }, pages: pages.map(p => p.id === currentPage.id ? { ...p, elements: nextEls } : p) })
+      return
+    }
+    // site-wide
+    const nextPages = pages.map(p => {
+      const updated = (p.elements || []).map(el => {
+        if (typeof (el.props as any)?.src === 'string' && (el.props as any).src === oldUrl) {
+          return { ...el, props: { ...(el.props||{}), src: newUrl } }
+        }
+        return el
+      })
+      return { ...p, elements: updated }
+    })
+    const nextCurrent = currentPage ? nextPages.find(p => p.id === currentPage.id) || currentPage : null
+    set({ pages: nextPages, currentPage: nextCurrent })
+  },
+
+  editComponent: (componentId: string) => {
+    set({ editingComponentId: componentId })
+  },
+
+  updateComponent: async (componentId: string, updates: { name?: string; elements?: Element[] }) => {
+    const { components, pages, currentPage } = get()
+    const comp = components[componentId]
+    if (!comp) throw new Error('Component not found')
+
+    const updatedComp = {
+      ...comp,
+      ...(updates.name && { name: updates.name }),
+      ...(updates.elements && { elements: JSON.parse(JSON.stringify(updates.elements)) }),
+    }
+
+    set((state) => ({
+      components: { ...state.components, [componentId]: updatedComp },
+    }))
+
+    // Save to backend
+    const { token } = useAuthStore.getState()
+    try {
+      await fetch(API_CONFIG.ENDPOINTS.COMPONENTS.UPDATE(componentId), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          name: updatedComp.name,
+          elements: updatedComp.elements,
+          variants: updatedComp.variants,
+        }),
+      })
+    } catch (error) {
+      console.error('Failed to save component update:', error)
+    }
+
+    // Push updates to all instances
+    if (updates.elements) {
+      const allPages = pages.concat(currentPage ? [currentPage] : []).filter(Boolean)
+      allPages.forEach(page => {
+        const instances = (page.elements || []).filter((el: any) => 
+          (el.props as any)?.componentId === componentId
+        )
+        if (instances.length > 0) {
+          instances.forEach((inst: Element) => {
+            const base = (inst.props as any)?.componentBase || {}
+            // Update instance with new component base
+            const newProps = {
+              ...(inst.props || {}),
+              componentBase: {
+                props: updatedComp.elements[0]?.props || base.props || {},
+                styles: updatedComp.elements[0]?.styles || base.styles || {},
+              },
+            }
+            get().updateElement(inst.id, { props: newProps as any })
+          })
+        }
+      })
+    }
+
+    toast.success('Component updated and pushed to instances')
+  },
+
+  deleteComponent: async (componentId: string) => {
+    const { components, pages, currentPage } = get()
+    const comp = components[componentId]
+    if (!comp) return
+
+    // Check for instances
+    const allPages = pages.concat(currentPage ? [currentPage] : []).filter(Boolean)
+    const hasInstances = allPages.some(page => 
+      (page.elements || []).some((el: any) => (el.props as any)?.componentId === componentId)
+    )
+
+    if (hasInstances && !confirm('This component has instances. Delete anyway?')) {
+      return
+    }
+
+    // Delete from backend
+    const { token } = useAuthStore.getState()
+    try {
+      await fetch(API_CONFIG.ENDPOINTS.COMPONENTS.DELETE(componentId), {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
+    } catch (error) {
+      console.error('Failed to delete component from backend:', error)
+    }
+
+    set((state) => {
+      const newComps = { ...state.components }
+      delete newComps[componentId]
+      return { components: newComps, editingComponentId: state.editingComponentId === componentId ? null : state.editingComponentId }
+    })
+    toast.success('Component deleted')
+  },
+
+  renameComponent: async (componentId: string, newName: string) => {
+    const { components } = get()
+    const comp = components[componentId]
+    if (!comp) return
+
+    set((state) => ({
+      components: { ...state.components, [componentId]: { ...comp, name: newName } },
+    }))
+
+    // Save to backend
+    const { token } = useAuthStore.getState()
+    try {
+      await fetch(API_CONFIG.ENDPOINTS.COMPONENTS.UPDATE(componentId), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ name: newName }),
+      })
+      toast.success('Component renamed')
+    } catch (error) {
+      console.error('Failed to rename component:', error)
+      toast.error('Rename failed to save')
+    }
+  },
+
+  resetToComponentDefaults: (elementId: string) => {
+    set((state) => {
+      if (!state.currentPage) return {}
+      const page = state.currentPage
+      const nextEls = page.elements.map((el) => {
+        if (el.id !== elementId) return el
+        const base: any = (el.props as any)?.componentBase || {}
+        return {
+          ...el,
+          props: { ...(el.props||{}), ...(base.props||{}) },
+          styles: { ...(base.styles||{}) },
+        }
+      })
+      return {
+        pages: state.pages.map(p => p.id === page.id ? { ...p, elements: nextEls } : p),
+        currentPage: { ...page, elements: nextEls },
+      }
+    })
+  },
 
   fetchPages: async (websiteId: string) => {
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.LIST(websiteId), {
+      const locale = get().currentLocale
+      const url = `${API_CONFIG.ENDPOINTS.PAGES.LIST(websiteId)}${locale ? `?locale=${encodeURIComponent(locale)}` : ''}`
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -489,15 +834,43 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
       }
 
       const pages = await response.json()
+
+      // Phase 3: hydrate p3 fields from props.__p3 for all elements
+      const hydrateP3 = (el: any) => {
+        const p3 = el?.props?.__p3
+        if (p3 && typeof p3 === 'object') {
+          const { dataSource, dataBindings, condition, animations, interactions, customCSS, customJS } = p3
+          el = {
+            ...el,
+            dataSource: dataSource ?? el.dataSource,
+            dataBindings: dataBindings ?? el.dataBindings,
+            condition: condition ?? el.condition,
+            animations: animations ?? el.animations,
+            interactions: interactions ?? el.interactions,
+            customCSS: customCSS ?? el.customCSS,
+            customJS: customJS ?? el.customJS,
+          }
+        }
+        return el
+      }
+
+      const mappedPages = (Array.isArray(pages) ? pages : []).map((p: any) => ({
+        ...p,
+        elements: (p.elements || []).map((el: any) => hydrateP3(el)),
+      }))
       
       set({
-        pages: Array.isArray(pages) ? pages : [],
+        pages: mappedPages,
         isLoading: false,
       })
     } catch (error) {
       set({ isLoading: false })
       throw error
     }
+  },
+
+  setLocale: (locale: string) => {
+    set({ currentLocale: locale })
   },
 
   createPage: async (pageData: {
@@ -521,6 +894,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         name: pageData.name,
         slug: pageData.slug,
         isHome: pageData.isHomePage || false,
+        locale: get().currentLocale || 'en',
       }
 
       const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.CREATE(currentWebsite.id), {
@@ -673,6 +1047,16 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
       // Try to save to backend in background
       try {
         const { token } = useAuthStore.getState()
+        // Phase 3: serialize p3 fields into props.__p3 for persistence
+        const p3 = {
+          dataSource: element.dataSource,
+          dataBindings: element.dataBindings,
+          condition: element.condition,
+          animations: element.animations,
+          interactions: element.interactions,
+          customCSS: element.customCSS,
+          customJS: element.customJS,
+        }
         const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.CREATE, {
           method: 'POST',
           headers: {
@@ -683,7 +1067,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
             pageId: currentPage.id,
             type: element.type,
             name: element.name,
-            props: element.props || {},
+            props: { ...(element.props || {}), __p3: p3 },
             styles: element.styles || {},
             parentId: parentId || null,
             order: element.order || 0,
@@ -726,13 +1110,26 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
+      // Phase 3: serialize p3 fields into props.__p3 when updating
+      const p3 = {
+        dataSource: updates.dataSource,
+        dataBindings: updates.dataBindings,
+        condition: updates.condition,
+        animations: updates.animations,
+        interactions: updates.interactions,
+        customCSS: updates.customCSS,
+        customJS: updates.customJS,
+      }
       const response = await fetch(API_CONFIG.ENDPOINTS.ELEMENTS.UPDATE(id), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(updates),
+        body: JSON.stringify({
+          ...updates,
+          props: updates.props ? { ...updates.props, __p3: { ...(updates.props as any)?.__p3, ...p3 } } : undefined,
+        }),
       })
 
       if (!response.ok) {
@@ -877,7 +1274,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      const { currentPage } = get()
+      const { currentPage, currentWebsite } = get()
       
       if (!currentPage) {
         throw new Error('No page selected')
@@ -885,13 +1282,31 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
 
       // Best-effort: if backend has a save endpoint use it, otherwise resolve silently
       try {
+        // Phase 3: serialize p3 fields for all elements prior to save
+        const serializedElements = (currentPage.elements || []).map((el: any) => ({
+          ...el,
+          props: {
+            ...(el.props || {}),
+            __p3: {
+              dataSource: el.dataSource,
+              dataBindings: el.dataBindings,
+              condition: el.condition,
+              animations: el.animations,
+              interactions: el.interactions,
+              customCSS: el.customCSS,
+              customJS: el.customJS,
+              ...((el.props as any)?.__p3 || {}),
+            },
+          },
+        }))
+
         const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.SAVE(currentPage.id), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
           },
-          body: JSON.stringify({ elements: currentPage.elements }),
+          body: JSON.stringify({ elements: serializedElements }),
         })
         if (!response.ok) {
           // No save endpoint: fall back without failing the UX
@@ -900,6 +1315,16 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
       } catch {
         console.warn('Save skipped (endpoint missing)')
       }
+      
+      // Also save theme tokens
+      if (currentWebsite) {
+        try {
+          await get().saveThemeTokens(currentWebsite.id)
+        } catch {
+          console.warn('Theme tokens save skipped')
+        }
+      }
+      
       set({ isLoading: false })
     } catch (error) {
       set({ isLoading: false })

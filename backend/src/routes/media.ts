@@ -5,6 +5,36 @@ import path from 'path'
 import fs from 'fs'
 
 const router = Router()
+// PATCH /api/media/:id - rename media originalName
+router.patch('/media/:id', async (req, res) => {
+  try {
+    const prisma = getPrismaClient()
+    const { originalName } = req.body || {}
+    if (!originalName || typeof originalName !== 'string') {
+      return res.status(400).json({ error: 'originalName is required' })
+    }
+    const updated = await prisma.media.update({
+      where: { id: req.params.id },
+      data: { originalName },
+    })
+    res.json(updated)
+  } catch (error) {
+    console.error('Failed to rename media:', error)
+    res.status(500).json({ error: 'Failed to rename media' })
+  }
+})
+
+// DELETE /api/media/:id - delete media
+router.delete('/media/:id', async (req, res) => {
+  try {
+    const prisma = getPrismaClient()
+    await prisma.media.delete({ where: { id: req.params.id } })
+    res.status(204).send()
+  } catch (error) {
+    console.error('Failed to delete media:', error)
+    res.status(500).json({ error: 'Failed to delete media' })
+  }
+})
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
