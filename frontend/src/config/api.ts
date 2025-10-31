@@ -1,5 +1,15 @@
 // API Configuration - BuildFlow Backend
-const API_BASE_URL = (import.meta as any).env?.VITE_API_URL || 'https://buildflow-platform.onrender.com'
+// Enforce explicit API base in production to avoid accidental wrong endpoints
+let API_BASE_URL = (import.meta as any).env?.VITE_API_URL as string | undefined
+
+if (!API_BASE_URL) {
+  const isProd = Boolean((import.meta as any).env?.PROD)
+  if (isProd) {
+    throw new Error('VITE_API_URL must be set in production environment')
+  }
+  // Sensible default for local development only
+  API_BASE_URL = 'http://localhost:5000'
+}
 
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
