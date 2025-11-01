@@ -1,5 +1,9 @@
 import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
+import { validateRequest, validateParams } from '../middleware/validation'
+import { createElementSchema, updateElementSchema, elementIdParamsSchema, pageIdParamsSchema } from '../validations/elements'
+import { logger } from '../utils/logger'
+import { createError, asyncHandler } from '../utils/errorHandler'
 
 const router = Router()
 
