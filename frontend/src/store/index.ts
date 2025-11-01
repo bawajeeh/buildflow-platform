@@ -522,7 +522,13 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
 
   loadThemeTokens: async (websiteId: string) => {
     try {
-      const response = await fetch(`${API_CONFIG.BASE_URL}/api/websites/${websiteId}/theme`, { credentials: 'include' })
+      const { token } = useAuthStore.getState()
+      const response = await fetch(API_CONFIG.ENDPOINTS.WEBSITES.GET_THEME(websiteId), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        credentials: 'include'
+      })
       if (!response.ok) return
       const tokens = await response.json()
       set({ themeTokens: tokens })
@@ -535,7 +541,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     try {
       const body = JSON.stringify(get().themeTokens)
       const { token } = useAuthStore.getState()
-      await fetch(`${API_CONFIG.BASE_URL}/api/websites/${websiteId}/theme`, {
+      await fetch(API_CONFIG.ENDPOINTS.WEBSITES.UPDATE_THEME(websiteId), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body,

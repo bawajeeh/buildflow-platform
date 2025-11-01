@@ -6,7 +6,7 @@ import fs from 'fs'
 
 const router = Router()
 // PATCH /api/media/:id - rename media originalName
-router.patch('/media/:id', async (req, res) => {
+router.patch('/:id', async (req, res) => {
   try {
     const prisma = getPrismaClient()
     const { originalName } = req.body || {}
@@ -24,8 +24,7 @@ router.patch('/media/:id', async (req, res) => {
   }
 })
 
-// DELETE /api/media/:id - delete media
-router.delete('/media/:id', async (req, res) => {
+// This route is handled below with the other DELETE /:id route
   try {
     const prisma = getPrismaClient()
     await prisma.media.delete({ where: { id: req.params.id } })
@@ -104,7 +103,7 @@ router.get('/', async (req, res) => {
 })
 
 // Upload media file
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' })

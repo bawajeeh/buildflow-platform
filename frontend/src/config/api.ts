@@ -100,6 +100,15 @@ export const API_CONFIG = {
       PLANS: `${API_BASE_URL}/api/billing/plans`,
       CHECKOUT: `${API_BASE_URL}/api/billing/checkout`,
     },
+    MEDIA: {
+      LIST: (websiteId?: string) => `${API_BASE_URL}/api/media${websiteId ? `?websiteId=${websiteId}` : ''}`,
+      UPLOAD: `${API_BASE_URL}/api/media`,
+      UPLOAD_MULTIPLE: `${API_BASE_URL}/api/media/upload-multiple`,
+      GET: (id: string) => `${API_BASE_URL}/api/media/${id}`,
+      UPDATE: (id: string) => `${API_BASE_URL}/api/media/${id}`,
+      DELETE: (id: string) => `${API_BASE_URL}/api/media/${id}`,
+      SERVE: (filename: string) => `${API_BASE_URL}/api/media/serve/${filename}`,
+    },
   },
 }
 

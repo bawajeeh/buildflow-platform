@@ -2,6 +2,7 @@
 
 import { io, Socket } from 'socket.io-client'
 import { useAuthStore } from '@/store'
+import { API_CONFIG } from '@/config/api'
 
 interface RealTimeConfig {
   serverUrl: string
@@ -38,7 +39,7 @@ class RealTimeService {
   private reconnectAttempts: number = 0
 
   constructor(config: RealTimeConfig = {
-    serverUrl: import.meta.env.VITE_API_URL || 'https://buildflow-platform.onrender.com',
+    serverUrl: import.meta.env.VITE_API_URL || API_CONFIG.BASE_URL,
     autoConnect: true,
     reconnectAttempts: 5,
     reconnectDelay: 1000
