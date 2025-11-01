@@ -68,7 +68,7 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
       const data = await response.json()
       setProducts(data.data || [])
     } catch (error) {
-      console.error('Error fetching products:', error)
+      logger.error('Error fetching products', error)
       // Fallback to empty array on error
       setProducts([])
     }

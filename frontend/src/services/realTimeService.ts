@@ -113,10 +113,10 @@ class RealTimeService {
     })
 
     this.socket.on('connect_error', (error) => {
-      console.error('❌ Connection error:', error)
+      logger.error('Socket.IO connection error', error)
       // Don't reconnect if it's an authentication error (user needs to log in)
       if (error.message?.includes('Authentication error')) {
-        console.error('🔐 Authentication failed - please log in again')
+        logger.error('Socket.IO authentication failed - user needs to log in', error)
         this.isConnected = false
         return
       }
@@ -167,12 +167,18 @@ class RealTimeService {
   // Handle reconnection
   private handleReconnect(): void {
     if (this.reconnectAttempts >= this.config.reconnectAttempts) {
-      console.error('❌ Max reconnection attempts reached')
+      logger.error('Max Socket.IO reconnection attempts reached', {
+        attempts: this.reconnectAttempts,
+        maxAttempts: this.config.reconnectAttempts,
+      })
       return
     }
 
     this.reconnectAttempts++
-    console.log(`🔄 Attempting to reconnect (${this.reconnectAttempts}/${this.config.reconnectAttempts})`)
+    logger.debug('Attempting Socket.IO reconnect', {
+      attempt: this.reconnectAttempts,
+      maxAttempts: this.config.reconnectAttempts,
+    })
 
     setTimeout(() => {
       this.connect()
