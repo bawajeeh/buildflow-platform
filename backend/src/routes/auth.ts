@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { validateRequest } from '../middleware/validation'
 import { sendEmail } from '../services/email'
 import { getPrismaClient } from '../services/database'
+import { logger } from '../utils/logger'
 
 const router = express.Router()
 
@@ -147,7 +148,7 @@ router.post('/register', validateRequest(registerSchema), async (req, res) => {
       },
     })
   } catch (error) {
-    console.error('Registration error:', error)
+    logger.error('Registration error', error, { email: req.body.email })
     res.status(500).json({
       success: false,
       error: 'Internal server error',

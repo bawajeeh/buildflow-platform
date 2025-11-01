@@ -35,10 +35,9 @@ import teamsRoutes from './routes/teams'
 import billingRoutes from './routes/billing'
 
 // Import middleware
-import { errorHandler } from './middleware/errorHandler'
-import { notFound } from './middleware/notFound'
 import { rateLimiter } from './middleware/rateLimiter'
 import { authMiddleware } from './middleware/auth'
+import { errorHandler, notFound } from './utils/errorHandler'
 
 // Import services
 import { initializeDatabase, getPrismaClient } from './services/database'

@@ -1,12 +1,17 @@
 import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
+import { validateRequest, validateParams } from '../middleware/validation'
+import { createWebsiteSchema, updateWebsiteSchema, updateThemeSchema, subdomainParamsSchema, websiteIdParamsSchema } from '../validations/websites'
+import { logger } from '../utils/logger'
+import { createError } from '../utils/errorHandler'
 
 const router = Router()
 
 // Get website by subdomain (public route for serving published websites)
-router.get('/subdomain/:subdomain', async (req, res) => {
+router.get('/subdomain/:subdomain', validateParams(subdomainParamsSchema), async (req, res, next) => {
   try {
     const { subdomain } = req.params
+    
     const website = await getPrismaClient().website.findUnique({
       where: { subdomain },
       include: {
@@ -24,31 +29,56 @@ router.get('/subdomain/:subdomain', async (req, res) => {
     })
     
     if (!website) {
-      return res.status(404).json({ error: 'Website not found' })
+      return res.status(404).json({ 
+        success: false,
+        error: 'Website not found',
+        code: 'WEBSITE_NOT_FOUND'
+      })
     }
     
     if (website.status !== 'PUBLISHED') {
-      return res.status(404).json({ error: 'Website not published' })
+      return res.status(404).json({ 
+        success: false,
+        error: 'Website not published',
+        code: 'WEBSITE_NOT_PUBLISHED'
+      })
     }
     
-    // Parse JSON fields for elements
+    // Parse JSON fields for elements safely
     const parsedPages = website.pages.map(page => ({
       ...page,
-      elements: page.elements.map(el => ({
-        ...el,
-        props: typeof el.props === 'string' ? JSON.parse(el.props) : el.props,
-        styles: typeof el.styles === 'string' ? JSON.parse(el.styles) : el.styles,
-        responsive: typeof el.responsive === 'string' ? JSON.parse(el.responsive) : el.responsive,
-      })),
+      elements: page.elements.map(el => {
+        try {
+          return {
+            ...el,
+            props: typeof el.props === 'string' ? JSON.parse(el.props) : el.props,
+            styles: typeof el.styles === 'string' ? JSON.parse(el.styles) : el.styles,
+            responsive: typeof el.responsive === 'string' ? JSON.parse(el.responsive) : el.responsive,
+          }
+        } catch (parseError) {
+          logger.warn('Failed to parse element JSON', { elementId: el.id, parseError })
+          return {
+            ...el,
+            props: {},
+            styles: {},
+            responsive: {},
+          }
+        }
+      }),
     }))
     
     res.json({
-      ...website,
-      pages: parsedPages,
+      success: true,
+      data: {
+        ...website,
+        pages: parsedPages,
+      },
     })
   } catch (error) {
-    console.error('Failed to fetch website by subdomain:', error)
-    res.status(500).json({ error: 'Failed to fetch website' })
+    logger.error('Failed to fetch website by subdomain', error, {
+      subdomain: req.params.subdomain,
+    })
+    next(error)
   }
 })
 
@@ -111,19 +141,14 @@ router.get('/:id', async (req, res) => {
 })
 
 // Create new website
-router.post('/', async (req, res) => {
+router.post('/', validateRequest(createWebsiteSchema), async (req, res, next) => {
   try {
     const { name, subdomain } = req.body
     
     // Get userId from authenticated user
     const userId = req.user?.id
     if (!userId) {
-      return res.status(401).json({ error: 'User not authenticated' })
-    }
-    
-    // Validate subdomain
-    if (!subdomain || typeof subdomain !== 'string' || subdomain.trim().length === 0) {
-      return res.status(400).json({ error: 'Subdomain is required' })
+      throw createError('User not authenticated', 401, 'UNAUTHORIZED')
     }
     
     // Check if subdomain is already taken
@@ -132,7 +157,7 @@ router.post('/', async (req, res) => {
     })
     
     if (existing) {
-      return res.status(409).json({ error: 'Subdomain already taken' })
+      throw createError('Subdomain already taken', 409, 'SUBDOMAIN_TAKEN', { subdomain })
     }
     
     const prisma = getPrismaClient()
@@ -163,7 +188,7 @@ router.post('/', async (req, res) => {
         },
       })
     } catch (pageError) {
-      console.error('Failed to create default homepage:', pageError)
+      logger.warn('Failed to create default homepage', pageError, { websiteId: website.id })
       // Continue - homepage creation is not critical
     }
     
@@ -179,7 +204,7 @@ router.post('/', async (req, res) => {
         },
       })
     } catch (settingsError) {
-      console.error('Failed to create default settings:', settingsError)
+      logger.warn('Failed to create default settings', settingsError, { websiteId: website.id })
       // Continue - settings creation is not critical
     }
     
@@ -192,10 +217,15 @@ router.post('/', async (req, res) => {
       },
     })
     
-    res.status(201).json(websiteWithPages || website)
+    logger.info('Website created successfully', { websiteId: website.id, subdomain })
+    
+    res.status(201).json({
+      success: true,
+      data: websiteWithPages || website,
+    })
   } catch (error) {
-    console.error('Create website error:', error)
-    res.status(500).json({ error: 'Failed to create website' })
+    logger.error('Create website error', error, { userId: req.user?.id })
+    next(error)
   }
 })
 

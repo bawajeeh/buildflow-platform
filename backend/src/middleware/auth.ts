@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { getPrismaClient } from '../services/database'
+import { logger } from '../utils/logger'
 
 
 // Extend Request interface to include user
@@ -59,10 +60,14 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     next()
   } catch (error) {
-    console.error('Auth middleware error:', error)
+    logger.error('Auth middleware error', error, {
+      path: req.path,
+      method: req.method,
+    })
     res.status(401).json({
       success: false,
       error: 'Invalid token',
+      code: 'INVALID_TOKEN',
     })
   }
 }
@@ -122,8 +127,15 @@ export const requireWebsiteAccess = () => {
       }
       next()
     } catch (error) {
-      console.error('requireWebsiteAccess error:', error)
-      res.status(500).json({ success: false, error: 'Authorization check failed' })
+      logger.error('requireWebsiteAccess error', error, {
+        userId: req.user?.id,
+        websiteId: req.params.websiteId || req.body?.websiteId,
+      })
+      res.status(500).json({ 
+        success: false, 
+        error: 'Authorization check failed',
+        code: 'AUTHORIZATION_FAILED',
+      })
     }
   }
 }
