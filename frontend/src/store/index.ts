@@ -212,9 +212,20 @@ export const useAuthStore = create<AuthState>()(
         token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
+      // Optimize: Only persist essential data
+      merge: (persistedState: any, currentState) => ({
+        ...currentState,
+        ...persistedState,
+        isLoading: false, // Don't persist loading state
+      }),
     }
   )
 )
+
+// Optimized selectors for AuthStore
+export const useAuthUser = () => useAuthStore((state) => state.user)
+export const useAuthToken = () => useAuthStore((state) => state.token)
+export const useIsAuthenticated = () => useAuthStore((state) => state.isAuthenticated)
 
 // Website Store
 interface WebsiteState {
@@ -1438,3 +1449,10 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
     )
   },
 }))
+
+// Optimized selectors for BuilderStore
+export const useCurrentPage = () => useBuilderStore((state) => state.currentPage)
+export const useSelectedElement = () => useBuilderStore((state) => state.selectedElement)
+export const usePagesList = () => useBuilderStore((state) => state.pages)
+export const useThemeTokens = () => useBuilderStore((state) => state.themeTokens)
+export const useIsBuilderLoading = () => useBuilderStore((state) => state.isLoading)

@@ -87,43 +87,6 @@ const App: React.FC = () => {
     )
   }
 
-  const getSubdomain = (): string | null => {
-    if (typeof window === 'undefined') return null
-    const hostname = window.location.hostname
-    const parts = hostname.split('.')
-    if (parts.length >= 3) {
-      const subdomain = parts[0].toLowerCase()
-      const excluded = ['www', 'app', 'admin', 'api', 'localhost']
-      if (!excluded.includes(subdomain)) {
-        return subdomain
-      }
-    }
-    return null
-  }
-
-  const subdomain = getSubdomain()
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <LoadingSpinner size="lg" />
-      </div>
-    )
-  }
-
-  // If we're on a subdomain (not app/admin), show published website
-  if (subdomain) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Suspense fallback={<LoadingSpinner size="lg" />}>
-          <Routes>
-            <Route path="/*" element={<PublishedWebsitePage />} />
-          </Routes>
-        </Suspense>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Suspense fallback={<LoadingSpinner size="lg" />}>
