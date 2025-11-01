@@ -403,6 +403,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
 
   // Emit local cursor position periodically
   const lastEmitRef = React.useRef<number>(0)
+  React.useEffect(() => {
     const onMove = (e: MouseEvent) => {
       if (marquee) {
         // update marquee size

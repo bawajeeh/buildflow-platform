@@ -72,7 +72,7 @@ router.post('/export/website/:websiteId', authMiddleware, requireWebsiteAccess()
 
     const tpl = await prisma.template.create({
       data: {
-        name: name || `${website.name} Template`;
+        name: name || `${website.name} Template`,
         description: description || `Exported from website ${website.name}`,
         category,
         preview: '',
