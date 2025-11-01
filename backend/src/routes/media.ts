@@ -24,17 +24,6 @@ router.patch('/:id', async (req, res) => {
   }
 })
 
-// This route is handled below with the other DELETE /:id route
-  try {
-    const prisma = getPrismaClient()
-    await prisma.media.delete({ where: { id: req.params.id } })
-    res.status(204).send()
-  } catch (error) {
-    console.error('Failed to delete media:', error)
-    res.status(500).json({ error: 'Failed to delete media' })
-  }
-})
-
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
