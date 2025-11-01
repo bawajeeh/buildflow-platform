@@ -85,17 +85,35 @@ initializeDatabaseTables()
 // Middleware
 app.use(helmet())
 app.use(cors({
-  origin: [
-    'https://ain90.online',
-    'https://www.ain90.online',
-    'https://app.ain90.online',
-    'https://admin.ain90.online',
-    'https://buildflow-platform-frontend.vercel.app',
-    'https://buildflow-platform-frontend-tmbq.vercel.app',
-    'https://buildflow-platform-frontend-3bfn.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:3001'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true)
+    
+    const allowedOrigins = [
+      'https://ain90.online',
+      'https://www.ain90.online',
+      'https://app.ain90.online',
+      'https://admin.ain90.online',
+      'https://api.ain90.online',
+      'https://buildflow-platform-frontend.vercel.app',
+      'https://buildflow-platform-frontend-tmbq.vercel.app',
+      'https://buildflow-platform-frontend-3bfn.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:3001'
+    ]
+    
+    // Allow all subdomains of ain90.online (for published websites)
+    if (origin.endsWith('.ain90.online') || origin === 'https://ain90.online') {
+      return callback(null, true)
+    }
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -138,6 +156,11 @@ setupSwagger(app)
 
 // API Routes
 app.use('/api/auth', authRoutes)
+
+// Public route for published websites (no auth required)
+app.use('/api/websites/subdomain/:subdomain', websiteRoutes)
+
+// Protected routes (require authentication)
 app.use('/api/users', authMiddleware, userRoutes)
 app.use('/api/websites', authMiddleware, websiteRoutes)
 app.use('/api/websites', authMiddleware, pageRoutes)

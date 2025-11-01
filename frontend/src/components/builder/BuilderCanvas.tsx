@@ -33,14 +33,15 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
 }) => {
   const { hoveredElement, hoverElement } = useBuilderStore()
   
-  // Store functions in refs to prevent infinite loops
+  // Store functions in refs to prevent infinite loops - CRITICAL: Don't destructure addElement/updateElement!
   const addElementRef = React.useRef(useBuilderStore.getState().addElement)
   const updateElementRef = React.useRef(useBuilderStore.getState().updateElement)
   
+  // Update refs on every render without dependencies to always have latest functions
   React.useEffect(() => {
     addElementRef.current = useBuilderStore.getState().addElement
     updateElementRef.current = useBuilderStore.getState().updateElement
-  })
+  }) // Empty dependency array means this runs once per render, which is fine for refs
   const [draggingId, setDraggingId] = React.useState<string | null>(null)
   const dragStart = React.useRef<{ x: number; y: number; ex: number; ey: number } | null>(null)
   const [resizingId, setResizingId] = React.useState<string | null>(null)
@@ -415,15 +416,25 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   const marqueeRef = React.useRef(marquee)
   const pageRef = React.useRef(page)
   const selectedIdsRef = React.useRef(selectedIds)
+  const draggingIdRef = React.useRef(draggingId)
+  const resizingIdRef = React.useRef(resizingId)
+  const rotatingIdRef = React.useRef(rotatingId)
+  const zoomRef = React.useRef(zoom)
+  const freeformModeRef = React.useRef(freeformMode)
   
   React.useEffect(() => {
     marqueeRef.current = marquee
     pageRef.current = page
     selectedIdsRef.current = selectedIds
+    draggingIdRef.current = draggingId
+    resizingIdRef.current = resizingId
+    rotatingIdRef.current = rotatingId
+    zoomRef.current = zoom
+    freeformModeRef.current = freeformMode
     // Update refs for store functions on every render (but don't add to deps to prevent loops)
     addElementRef.current = useBuilderStore.getState().addElement
     updateElementRef.current = useBuilderStore.getState().updateElement
-  }, [marquee, page, selectedIds])
+  }, [marquee, page, selectedIds, draggingId, resizingId, rotatingId, zoom, freeformMode])
 
   React.useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -432,14 +443,14 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         setMarquee((m) => (m ? { ...m, w: e.clientX - m.x, h: e.clientY - m.y } : m))
         return
       }
-      if (draggingId && dragStart.current) {
-        const dx = (e.clientX - dragStart.current.x) / (zoom || 1)
-        const dy = (e.clientY - dragStart.current.y) / (zoom || 1)
+      if (draggingIdRef.current && dragStart.current) {
+        const dx = (e.clientX - dragStart.current.x) / (zoomRef.current || 1)
+        const dy = (e.clientY - dragStart.current.y) / (zoomRef.current || 1)
         let nx = dragStart.current.ex + dx
         let ny = dragStart.current.ey + dy
         // Smart guides vs other elements
         const threshold = 6
-        const me = (pageRef.current?.elements || []).find(el => el.id === draggingId)
+        const me = (pageRef.current?.elements || []).find(el => el.id === draggingIdRef.current)
         const meW = (me?.props?.width || 200)
         const meH = (me?.props?.height || 60)
         const meCenterX = nx + meW / 2
@@ -447,7 +458,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         let vGuide: number | undefined
         let hGuide: number | undefined
         for (const el of (pageRef.current?.elements || [])) {
-          if (!el || el.id === draggingId) continue
+          if (!el || el.id === draggingIdRef.current) continue
           const ex = el.props?.x ?? 0
           const ey = el.props?.y ?? 0
           const ew = el.props?.width ?? 200
@@ -472,7 +483,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         setGuides({ v: vGuide, h: hGuide })
         const snapGrid = (v: number) => Math.round(v / 10) * 10
         // Group drag: move all selected
-        const ids = new Set(selectedIdsRef.current.size ? selectedIdsRef.current : new Set([draggingId]))
+        const ids = new Set(selectedIdsRef.current.size ? selectedIdsRef.current : new Set([draggingIdRef.current]))
         if (ids.size > 1) {
           for (const id of ids) {
             const start = groupStart.current[id]
@@ -482,13 +493,13 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
             updateElementRef.current(id, { props: { x: gx, y: gy } as any })
           }
         } else {
-          updateElementRef.current(draggingId, { props: { x: snapGrid(nx), y: snapGrid(ny) } as any })
+          updateElementRef.current(draggingIdRef.current, { props: { x: snapGrid(nx), y: snapGrid(ny) } as any })
         }
         return
       }
-      if (resizingId && resizeStart.current) {
-        const dx = (e.clientX - resizeStart.current.x) / (zoom || 1)
-        const dy = (e.clientY - resizeStart.current.y) / (zoom || 1)
+      if (resizingIdRef.current && resizeStart.current) {
+        const dx = (e.clientX - resizeStart.current.x) / (zoomRef.current || 1)
+        const dy = (e.clientY - resizeStart.current.y) / (zoomRef.current || 1)
         let { ex, ey, ew, eh, dir } = resizeStart.current
         let nx = ex, ny = ey, nw = ew, nh = eh
         if (dir.includes('e')) nw = ew + dx
@@ -497,14 +508,14 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         if (dir.includes('n')) { nh = eh - dy; ny = ey + dy }
         const snap = (v: number) => Math.max(10, Math.round(v / 10) * 10)
         setGuides(null)
-        updateElementRef.current(resizingId, { props: { x: snap(nx), y: snap(ny), width: snap(nw), height: snap(nh) } as any })
+        updateElementRef.current(resizingIdRef.current, { props: { x: snap(nx), y: snap(ny), width: snap(nw), height: snap(nh) } as any })
         return
       }
-      if (rotatingId && rotateStart.current) {
+      if (rotatingIdRef.current && rotateStart.current) {
         const a = Math.atan2(e.clientY - rotateStart.current.cy, e.clientX - rotateStart.current.cx)
         const angle = (rotateStart.current.baseAngle + (a - rotateStart.current.startAngle)) * (180 / Math.PI)
         const snapped = Math.round(angle / 15) * 15
-        updateElementRef.current(rotatingId, { props: { rotate: snapped } as any })
+        updateElementRef.current(rotatingIdRef.current, { props: { rotate: snapped } as any })
       }
     }
     const onUp = () => {
@@ -540,7 +551,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       rotateStart.current = null
       setGuides(null)
     }
-    if (freeformMode) {
+    if (freeformModeRef.current) {
       window.addEventListener('mousemove', onMove)
       window.addEventListener('mouseup', onUp)
     }
@@ -548,7 +559,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
-  }, [draggingId, resizingId, rotatingId, freeformMode, zoom])
+  }, [freeformMode]) // Only depend on freeformMode - use refs for everything else
 
   return (
     <div

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
 import { API_CONFIG } from '@/config/api'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ElementRenderer from '@/components/builder/ElementRenderer'
