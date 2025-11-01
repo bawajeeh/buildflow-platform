@@ -152,7 +152,7 @@ export function deepClone<T>(obj: T): T {
 
 // Generate random ID
 export function generateId(prefix: string = 'id'): string {
-  return `${prefix}-${Math.random().toString(36).substr(2, 9)}`
+  return `${prefix}-${Math.random().toString(36).slice(2, 11)}`
 }
 
 // Get file size in human readable format
@@ -191,9 +191,9 @@ export function getContrastColor(hexColor: string): string {
   const color = hexColor.replace('#', '')
   
   // Convert to RGB
-  const r = parseInt(color.substr(0, 2), 16)
-  const g = parseInt(color.substr(2, 2), 16)
-  const b = parseInt(color.substr(4, 2), 16)
+  const r = parseInt(color.slice(0, 2), 16)
+  const g = parseInt(color.slice(2, 4), 16)
+  const b = parseInt(color.slice(4, 6), 16)
   
   // Calculate luminance
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
@@ -231,7 +231,7 @@ export function getRandomColor(): string {
 // Truncate text
 export function truncateText(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text
-  return text.substr(0, maxLength) + '...'
+  return text.slice(0, maxLength) + '...'
 }
 
 // Capitalize first letter
@@ -242,7 +242,7 @@ export function capitalize(text: string): string {
 // Convert to title case
 export function toTitleCase(text: string): string {
   return text.replace(/\w\S*/g, (txt) => {
-    return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    return txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase()
   })
 }
 
