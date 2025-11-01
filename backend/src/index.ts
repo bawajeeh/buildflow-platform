@@ -50,17 +50,41 @@ dotenv.config()
 
 const app = express()
 const server = createServer(app)
+// Socket.IO CORS configuration - must match HTTP CORS to allow all origins
 const io = new Server(server, {
   cors: {
-    origin: [
-      process.env.FRONTEND_URL || 'http://localhost:3000',
-      'https://app.ain90.online',
-      'https://admin.ain90.online',
-      'http://localhost:3000',
-      'http://localhost:3001'
-    ],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true)
+      
+      const allowedOrigins = [
+        'https://ain90.online',
+        'https://www.ain90.online',
+        'https://app.ain90.online',
+        'https://admin.ain90.online',
+        'https://api.ain90.online',
+        'https://buildflow-platform-frontend.vercel.app',
+        'https://buildflow-platform-frontend-tmbq.vercel.app',
+        'https://buildflow-platform-frontend-3bfn.vercel.app',
+        'http://localhost:3000',
+        'http://localhost:3001'
+      ]
+      
+      // Allow all subdomains of ain90.online (for published websites)
+      if (origin.endsWith('.ain90.online') || origin === 'https://ain90.online') {
+        return callback(null, true)
+      }
+      
+      // Check if origin is in allowed list
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true,
+    allowedHeaders: ['Authorization'],
   },
 })
 
