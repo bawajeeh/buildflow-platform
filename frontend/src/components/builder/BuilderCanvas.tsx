@@ -150,10 +150,17 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   })
 
   // Get page elements sorted by order
+  // CRITICAL: Depend on page object reference AND elements array to ensure updates are detected
+  // When addElement updates the store, it creates a new currentPage object, so page reference changes
   const sortedElements = useMemo(() => {
-    if (!page?.elements || !Array.isArray(page.elements)) return []
-    return [...page.elements].sort((a, b) => (a.order || 0) - (b.order || 0))
-  }, [page?.elements])
+    if (!page || !page.elements || !Array.isArray(page.elements)) {
+      console.log('⚠️ sortedElements: No page or elements', { hasPage: !!page, hasElements: !!page?.elements })
+      return []
+    }
+    const sorted = [...page.elements].sort((a, b) => (a.order || 0) - (b.order || 0))
+    console.log('✅ sortedElements recalculated:', sorted.length, 'elements from page', page.id)
+    return sorted
+  }, [page, page?.id, page?.elements]) // page reference changes when store updates
 
   // Handle element click
   const handleElementClick = useCallback((element: Element, event: React.MouseEvent) => {
