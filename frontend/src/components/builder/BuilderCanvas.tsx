@@ -199,8 +199,8 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       dragStart.current = { x: e.clientX, y: e.clientY, ex: x, ey: y }
       // capture starting positions for group drag
       groupStart.current = {}
-      const ids = new Set(selectedIds.size ? selectedIds : new Set([element.id]))
-      for (const el of (page?.elements || [])) {
+      const ids = new Set(selectedIdsRef.current.size ? selectedIdsRef.current : new Set([element.id]))
+      for (const el of (pageRef.current?.elements || [])) {
         if (ids.has(el.id)) {
           groupStart.current[el.id] = { x: el.props?.x ?? 0, y: el.props?.y ?? 0 }
         }
@@ -222,7 +222,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
     return (
       <div key={element.id} style={style} onMouseDown={onMouseDown}>
         {inner}
-        {(selectedElement?.id === element.id || selectedIds.has(element.id)) && (
+        {(selectedElement?.id === element.id || selectedIdsRef.current.has(element.id)) && (
           <>
             <div className="absolute inset-0 ring-1 ring-blue-500 pointer-events-none" />
             {/* Rotation handle */}
@@ -271,7 +271,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         )}
       </div>
     )
-  }, [selectedElement, hoveredElement, responsiveMode, handleElementClick, handleElementHover, freeformMode, onElementSelect]) // Removed draggingId - causes infinite loop
+  }, [selectedElement, hoveredElement, responsiveMode, handleElementClick, handleElementHover, onElementSelect]) // Removed freeformMode and draggingId - use refs instead
 
   // Handle drop event
   const handleDrop = useCallback(async (e: React.DragEvent) => {
@@ -582,8 +582,8 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       onMouseMove={(e) => {
         try {
           const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-          const x = (e.clientX - rect.left) / (zoom || 1)
-          const y = (e.clientY - rect.top) / (zoom || 1)
+          const x = (e.clientX - rect.left) / (zoomRef.current || 1)
+          const y = (e.clientY - rect.top) / (zoomRef.current || 1)
           const { setPointerPosition } = useBuilderStore.getState()
           setPointerPosition({ x, y })
           const now = performance.now()
