@@ -158,7 +158,54 @@ setupSwagger(app)
 app.use('/api/auth', authRoutes)
 
 // Public route for published websites (no auth required)
-app.use('/api/websites/subdomain/:subdomain', websiteRoutes)
+// CRITICAL: Must be mounted as direct route BEFORE /api/websites to avoid Express route conflict
+app.get('/api/websites/subdomain/:subdomain', async (req, res) => {
+  try {
+    const { subdomain } = req.params
+    const website = await getPrismaClient().website.findUnique({
+      where: { subdomain },
+      include: {
+        pages: {
+          where: { isPublished: true },
+          include: {
+            elements: {
+              orderBy: { order: 'asc' },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+        settings: true,
+      },
+    })
+    
+    if (!website) {
+      return res.status(404).json({ error: 'Website not found' })
+    }
+    
+    if (website.status !== 'PUBLISHED') {
+      return res.status(404).json({ error: 'Website not published' })
+    }
+    
+    // Parse JSON fields for elements
+    const parsedPages = website.pages.map(page => ({
+      ...page,
+      elements: page.elements.map(el => ({
+        ...el,
+        props: typeof el.props === 'string' ? JSON.parse(el.props) : el.props,
+        styles: typeof el.styles === 'string' ? JSON.parse(el.styles) : el.styles,
+        responsive: typeof el.responsive === 'string' ? JSON.parse(el.responsive) : el.responsive,
+      })),
+    }))
+    
+    res.json({
+      ...website,
+      pages: parsedPages,
+    })
+  } catch (error) {
+    console.error('Failed to fetch website by subdomain:', error)
+    res.status(500).json({ error: 'Failed to fetch website' })
+  }
+})
 
 // Protected routes (require authentication)
 app.use('/api/users', authMiddleware, userRoutes)
