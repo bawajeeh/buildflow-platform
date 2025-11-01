@@ -126,8 +126,6 @@ router.delete('/:id', async (req, res) => {
   }
 })
 
-export default router
-
 // Theme tokens per-website
 router.get('/:id/theme', async (req, res) => {
   try {
@@ -188,3 +186,38 @@ router.put('/:id/theme', async (req, res) => {
     res.status(500).json({ error: 'Failed to save theme tokens' })
   }
 })
+
+// Get services for a website
+router.get('/:id/services', async (req, res) => {
+  try {
+    const services = await getPrismaClient().service.findMany({
+      where: { websiteId: req.params.id },
+      orderBy: { createdAt: 'desc' },
+    })
+    res.json(services)
+  } catch (error) {
+    console.error('Failed to fetch services:', error)
+    res.status(500).json({ error: 'Failed to fetch services' })
+  }
+})
+
+// Get products for a website
+router.get('/:id/products', async (req, res) => {
+  try {
+    const products = await getPrismaClient().product.findMany({
+      where: { websiteId: req.params.id },
+      include: {
+        images: true,
+        variants: true,
+        categories: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+    res.json(products)
+  } catch (error) {
+    console.error('Failed to fetch products:', error)
+    res.status(500).json({ error: 'Failed to fetch products' })
+  }
+})
+
+export default router

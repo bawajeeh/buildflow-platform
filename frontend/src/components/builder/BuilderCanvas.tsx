@@ -403,9 +403,19 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
 
   // Emit local cursor position periodically
   const lastEmitRef = React.useRef<number>(0)
+  const marqueeRef = React.useRef(marquee)
+  const pageRef = React.useRef(page)
+  const selectedIdsRef = React.useRef(selectedIds)
+  
+  React.useEffect(() => {
+    marqueeRef.current = marquee
+    pageRef.current = page
+    selectedIdsRef.current = selectedIds
+  }, [marquee, page, selectedIds])
+
   React.useEffect(() => {
     const onMove = (e: MouseEvent) => {
-      if (marquee) {
+      if (marqueeRef.current) {
         // update marquee size
         setMarquee((m) => (m ? { ...m, w: e.clientX - m.x, h: e.clientY - m.y } : m))
         return
@@ -417,14 +427,14 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         let ny = dragStart.current.ey + dy
         // Smart guides vs other elements
         const threshold = 6
-        const me = (page?.elements || []).find(el => el.id === draggingId)
+        const me = (pageRef.current?.elements || []).find(el => el.id === draggingId)
         const meW = (me?.props?.width || 200)
         const meH = (me?.props?.height || 60)
         const meCenterX = nx + meW / 2
         const meCenterY = ny + meH / 2
         let vGuide: number | undefined
         let hGuide: number | undefined
-        for (const el of (page?.elements || [])) {
+        for (const el of (pageRef.current?.elements || [])) {
           if (!el || el.id === draggingId) continue
           const ex = el.props?.x ?? 0
           const ey = el.props?.y ?? 0
@@ -450,7 +460,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         setGuides({ v: vGuide, h: hGuide })
         const snapGrid = (v: number) => Math.round(v / 10) * 10
         // Group drag: move all selected
-        const ids = new Set(selectedIds.size ? selectedIds : new Set([draggingId]))
+        const ids = new Set(selectedIdsRef.current.size ? selectedIdsRef.current : new Set([draggingId]))
         if (ids.size > 1) {
           for (const id of ids) {
             const start = groupStart.current[id]
@@ -486,15 +496,15 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       }
     }
     const onUp = () => {
-      if (marquee) {
+      if (marqueeRef.current) {
         const rect = {
-          x1: Math.min(marquee.x, marquee.x + marquee.w),
-          y1: Math.min(marquee.y, marquee.y + marquee.h),
-          x2: Math.max(marquee.x, marquee.x + marquee.w),
-          y2: Math.max(marquee.y, marquee.y + marquee.h),
+          x1: Math.min(marqueeRef.current.x, marqueeRef.current.x + marqueeRef.current.w),
+          y1: Math.min(marqueeRef.current.y, marqueeRef.current.y + marqueeRef.current.h),
+          x2: Math.max(marqueeRef.current.x, marqueeRef.current.x + marqueeRef.current.w),
+          y2: Math.max(marqueeRef.current.y, marqueeRef.current.y + marqueeRef.current.h),
         }
         const next = new Set<string>()
-        for (const el of (page?.elements || [])) {
+        for (const el of (pageRef.current?.elements || [])) {
           const ex = el.props?.x ?? 0
           const ey = el.props?.y ?? 0
           const ew = el.props?.width ?? 200
