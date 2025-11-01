@@ -3,7 +3,8 @@ import { getPrismaClient } from '../services/database'
 import { validateRequest, validateParams } from '../middleware/validation'
 import { createWebsiteSchema, updateWebsiteSchema, updateThemeSchema, subdomainParamsSchema, websiteIdParamsSchema } from '../validations/websites'
 import { logger } from '../utils/logger'
-import { createError } from '../utils/errorHandler'
+import { createError, asyncHandler } from '../utils/errorHandler'
+import { z } from 'zod'
 
 const router = Router()
 
