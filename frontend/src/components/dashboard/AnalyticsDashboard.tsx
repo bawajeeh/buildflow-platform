@@ -59,7 +59,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ website }) => {
       }
 
       const data = await response.json()
-      setAnalytics(data.data || [])
+      // Backend returns { success: true, data: { analytics: [...], summary: {...}, period: {...} } }
+      const analyticsArray = data.data?.analytics || []
+      setAnalytics(analyticsArray)
     } catch (error) {
       logger.error('Error fetching analytics', error, { websiteId: website?.id, timeRange })
       // Fallback to empty array if API fails

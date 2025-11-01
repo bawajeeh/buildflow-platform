@@ -272,4 +272,160 @@ router.get('/summary/:websiteId', authMiddleware, validateParams(websiteIdParams
   res.json({ success: true, data: summary })
 }))
 
+// Get recent activity - Requires authentication
+router.get('/recent-activity', authMiddleware, asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) {
+    throw createError('User not authenticated', 401, 'UNAUTHORIZED')
+  }
+
+  // Get user's websites
+  const websites = await getPrismaClient().website.findMany({
+    where: { userId },
+    select: { id: true },
+  })
+
+  const websiteIds = websites.map(w => w.id)
+
+  // Fetch recent activity from various sources
+  // Get recent websites
+  const recentWebsites = await getPrismaClient().website.findMany({
+    where: { id: { in: websiteIds } },
+    select: {
+      id: true,
+      name: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+  })
+
+  // Get recent products
+  const recentProducts = await getPrismaClient().product.findMany({
+    where: { websiteId: { in: websiteIds } },
+    select: {
+      id: true,
+      name: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+  })
+
+  // Get recent orders
+  const recentOrders = await getPrismaClient().order.findMany({
+    where: { websiteId: { in: websiteIds } },
+    select: {
+      id: true,
+      orderNumber: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+  })
+
+  // Combine and format activities
+  const activities: any[] = []
+  
+  recentWebsites.forEach(ws => {
+    activities.push({
+      id: `website-${ws.id}`,
+      type: 'website',
+      action: 'created',
+      name: ws.name,
+      createdAt: ws.createdAt,
+    })
+  })
+
+  recentProducts.forEach(p => {
+    activities.push({
+      id: `product-${p.id}`,
+      type: 'product',
+      action: 'created',
+      name: p.name,
+      createdAt: p.createdAt,
+    })
+  })
+
+  recentOrders.forEach(o => {
+    activities.push({
+      id: `order-${o.id}`,
+      type: 'order',
+      action: 'created',
+      name: `Order ${o.orderNumber}`,
+      createdAt: o.createdAt,
+    })
+  })
+
+  // Sort by date (most recent first) and take top 10
+  activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  const recentActivities = activities.slice(0, 10)
+
+  logger.debug('Recent activity fetched', { userId, activityCount: recentActivities.length })
+
+  res.json({ success: true, data: recentActivities })
+}))
+
+// Get monthly stats - Requires authentication
+router.get('/monthly-stats', authMiddleware, asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  if (!userId) {
+    throw createError('User not authenticated', 401, 'UNAUTHORIZED')
+  }
+
+  // Get user's websites
+  const websites = await getPrismaClient().website.findMany({
+    where: { userId },
+    select: { id: true },
+  })
+
+  const websiteIds = websites.map(w => w.id)
+
+  // Calculate current month stats
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  
+  // Websites created this month
+  const websitesThisMonth = await getPrismaClient().website.count({
+    where: {
+      id: { in: websiteIds },
+      createdAt: {
+        gte: startOfMonth,
+      },
+    },
+  })
+
+  // Get analytics for this month
+  const analyticsThisMonth = await getPrismaClient().analytics.findMany({
+    where: {
+      websiteId: { in: websiteIds },
+      date: {
+        gte: startOfMonth,
+      },
+    },
+  })
+
+  const totalVisitors = analyticsThisMonth.reduce((sum, a) => sum + a.visitors, 0)
+  const totalOrders = await getPrismaClient().order.count({
+    where: {
+      websiteId: { in: websiteIds },
+      createdAt: {
+        gte: startOfMonth,
+      },
+    },
+  })
+  const totalRevenue = analyticsThisMonth.reduce((sum, a) => sum + a.revenue, 0)
+
+  const stats = {
+    websitesCreated: websitesThisMonth,
+    totalVisitors,
+    totalOrders,
+    totalRevenue,
+  }
+
+  logger.debug('Monthly stats fetched', { userId, stats })
+
+  res.json({ success: true, data: stats })
+}))
+
 export default router
