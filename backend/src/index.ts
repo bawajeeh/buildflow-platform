@@ -43,6 +43,7 @@ import { errorHandler, notFound } from './utils/errorHandler'
 import { initializeDatabase, getPrismaClient } from './services/database'
 import { initializeRedis } from './services/redis'
 import { initializeSocket } from './services/socket'
+import { logger } from './utils/logger'
 
 // Load environment variables
 dotenv.config()
