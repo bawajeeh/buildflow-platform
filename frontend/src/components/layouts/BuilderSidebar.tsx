@@ -90,10 +90,16 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
     const loadAssets = async () => {
       try {
         if (!currentWebsite) return
-        const res = await fetch(`${API_CONFIG.BASE_URL}/api/media?websiteId=${currentWebsite.id}`, { credentials: 'include' })
+        const { token } = useAuthStore.getState()
+        const res = await fetch(API_CONFIG.ENDPOINTS.MEDIA.LIST(currentWebsite.id), {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          credentials: 'include'
+        })
         if (res.ok) {
           const data = await res.json()
-          setAssets(Array.isArray(data) ? data : [])
+          setAssets(Array.isArray(data?.media) ? data.media : (Array.isArray(data) ? data : []))
         }
       } catch {}
     }

@@ -406,12 +406,14 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   const marqueeRef = React.useRef(marquee)
   const pageRef = React.useRef(page)
   const selectedIdsRef = React.useRef(selectedIds)
+  const updateElementRef = React.useRef(updateElement)
   
   React.useEffect(() => {
     marqueeRef.current = marquee
     pageRef.current = page
     selectedIdsRef.current = selectedIds
-  }, [marquee, page, selectedIds])
+    updateElementRef.current = updateElement
+  }, [marquee, page, selectedIds, updateElement])
 
   React.useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -467,10 +469,10 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
             if (!start) continue
             const gx = snapGrid(start.x + (nx - (dragStart.current.ex)))
             const gy = snapGrid(start.y + (ny - (dragStart.current.ey)))
-            updateElement(id, { props: { x: gx, y: gy } as any })
+            updateElementRef.current(id, { props: { x: gx, y: gy } as any })
           }
         } else {
-          updateElement(draggingId, { props: { x: snapGrid(nx), y: snapGrid(ny) } as any })
+          updateElementRef.current(draggingId, { props: { x: snapGrid(nx), y: snapGrid(ny) } as any })
         }
         return
       }
@@ -485,14 +487,14 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         if (dir.includes('n')) { nh = eh - dy; ny = ey + dy }
         const snap = (v: number) => Math.max(10, Math.round(v / 10) * 10)
         setGuides(null)
-        updateElement(resizingId, { props: { x: snap(nx), y: snap(ny), width: snap(nw), height: snap(nh) } as any })
+        updateElementRef.current(resizingId, { props: { x: snap(nx), y: snap(ny), width: snap(nw), height: snap(nh) } as any })
         return
       }
       if (rotatingId && rotateStart.current) {
         const a = Math.atan2(e.clientY - rotateStart.current.cy, e.clientX - rotateStart.current.cx)
         const angle = (rotateStart.current.baseAngle + (a - rotateStart.current.startAngle)) * (180 / Math.PI)
         const snapped = Math.round(angle / 15) * 15
-        updateElement(rotatingId, { props: { rotate: snapped } as any })
+        updateElementRef.current(rotatingId, { props: { rotate: snapped } as any })
       }
     }
     const onUp = () => {
@@ -536,7 +538,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
-  }, [draggingId, resizingId, rotatingId, freeformMode, zoom, updateElement])
+  }, [draggingId, resizingId, rotatingId, freeformMode, zoom])
 
   return (
     <div
