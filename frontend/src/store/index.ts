@@ -242,7 +242,7 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
     set({ isLoading: true })
     try {
       const { token } = useAuthStore.getState()
-      console.log('Fetching websites with token:', token ? 'Token exists' : 'No token')
+      logger.debug('Fetching websites', { hasToken: !!token })
       
       const response = await fetch(API_CONFIG.ENDPOINTS.WEBSITES.LIST, {
         headers: {
@@ -578,7 +578,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
       const blog = blogRes?.ok ? await blogRes.json().catch(() => []) : []
       set({ cmsData: { products: Array.isArray(products) ? products : [], blog: Array.isArray(blog) ? blog : [], services: Array.isArray(services) ? services : [] } })
     } catch (error) {
-      console.error('Failed to load CMS data:', error)
+      logger.error('Failed to load CMS data', error, { websiteId })
     }
   },
 
@@ -716,7 +716,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         }),
       })
     } catch (error) {
-      console.error('Failed to save component update:', error)
+      logger.error('Failed to save component update', error, { componentId })
     }
 
     // Push updates to all instances
@@ -1083,7 +1083,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         
         if (response.ok) {
           const savedElement = await response.json()
-          console.log('Element saved to backend:', savedElement)
+          logger.debug('Element saved to backend', { elementId: savedElement.id || savedElement.elementId })
           
           // Update with real ID from backend
           set((state) => ({
@@ -1319,7 +1319,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         })
         if (!response.ok) {
           // No save endpoint: fall back without failing the UX
-          console.warn('Save endpoint not available, skipping server save')
+          logger.warn('Save endpoint not available, skipping server save')
         }
       } catch {
         logger.warn('Save skipped (endpoint missing)')
