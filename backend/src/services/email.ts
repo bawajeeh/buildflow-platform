@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { logger } from '../utils/logger'
 
 interface EmailOptions {
   to: string
@@ -33,10 +34,10 @@ class EmailService {
       }
 
       await this.transporter.sendMail(mailOptions)
-      console.log(`✅ Email sent to ${options.to}`)
+      logger.info('Email sent', { to: options.to })
       return true
     } catch (error) {
-      console.error('❌ Failed to send email:', error)
+      logger.error('Failed to send email', error, { to: options.to })
       return false
     }
   }

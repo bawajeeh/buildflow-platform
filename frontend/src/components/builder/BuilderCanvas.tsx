@@ -47,7 +47,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       if (state?.addElement) addElementRef.current = state.addElement
       if (state?.updateElement) updateElementRef.current = state.updateElement
     } catch (error) {
-      console.error('Error accessing store:', error)
+      logger.error('Error accessing store', error)
     }
   }) // No dependencies - intentionally runs every render
   const [draggingId, setDraggingId] = React.useState<string | null>(null)

@@ -95,11 +95,11 @@ initializeSocket(io)
 // Initialize database tables if they don't exist
 async function initializeDatabaseTables() {
   try {
-    console.log('🔧 Initializing database tables...')
+    logger.info('Initializing database tables')
     await prisma.$executeRaw`SELECT 1`
-    console.log('✅ Database tables initialized')
+    logger.info('Database tables initialized')
   } catch (error) {
-    console.error('❌ Database initialization failed:', error)
+    logger.error('Database initialization failed', error)
   }
 }
 
@@ -263,9 +263,7 @@ app.use(errorHandler)
 // Start server
 const PORT = process.env.PORT || 5001
 server.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`)
-  console.log(`📊 Health check: http://localhost:${PORT}/health`)
-  console.log(`🔧 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`)
+  logger.info('Server started', { port: PORT, hasDatabase: !!process.env.DATABASE_URL })
 })
 
 export { app, server, io }

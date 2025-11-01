@@ -19,7 +19,7 @@ router.patch('/:id', async (req, res) => {
     })
     res.json(updated)
   } catch (error) {
-    console.error('Failed to rename media:', error)
+    logger.error('Failed to rename media', error, { mediaId: req.params.id })
     res.status(500).json({ error: 'Failed to rename media' })
   }
 })

@@ -94,21 +94,60 @@ router.post('/:websiteId/pages', validateParams(websiteIdParamsSchema), validate
 }))
 
 // Get all pages for a website
-router.get('/website/:websiteId', async (req, res) => {
-  try {
-    const pages = await getPrismaClient().page.findMany({
-      where: { websiteId: req.params.websiteId },
-      include: {
-        elements: {
-          orderBy: { order: 'asc' },
-        },
-      },
-    })
-    res.json(pages)
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch pages' })
+router.get('/website/:websiteId', validateParams(websiteIdParamsSchema), asyncHandler(async (req, res) => {
+  const websiteId = req.params.websiteId
+  const userId = req.user?.id
+  
+  if (!userId) {
+    throw createError('User not authenticated', 401, 'UNAUTHORIZED')
   }
-})
+  
+  // Verify website exists and user has access
+  const website = await getPrismaClient().website.findUnique({
+    where: { id: websiteId },
+  })
+  
+  if (!website) {
+    throw createError('Website not found', 404, 'WEBSITE_NOT_FOUND')
+  }
+  
+  if (website.userId !== userId) {
+    throw createError('Insufficient permissions', 403, 'FORBIDDEN')
+  }
+  
+  const pages = await getPrismaClient().page.findMany({
+    where: { websiteId },
+    include: {
+      elements: {
+        orderBy: { order: 'asc' },
+      },
+    },
+  })
+  
+  // Safe JSON parsing helper
+  const parseJsonField = (field: string | unknown) => {
+    try {
+      return typeof field === 'string' ? JSON.parse(field) : field
+    } catch {
+      return {}
+    }
+  }
+  
+  const parsedPages = pages.map(page => ({
+    ...page,
+    elements: page.elements.map(el => ({
+      ...el,
+      props: parseJsonField(el.props),
+      styles: parseJsonField(el.styles),
+      responsive: parseJsonField(el.responsive),
+    })),
+  }))
+  
+  res.json({
+    success: true,
+    data: parsedPages,
+  })
+}))
 
 // Get page by ID
 router.get('/:id', validateParams(pageIdParamsSchema), asyncHandler(async (req, res) => {

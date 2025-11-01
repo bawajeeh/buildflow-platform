@@ -1,4 +1,5 @@
 import { createClient } from 'redis'
+import { logger } from '../utils/logger'
 
 let redisClient: ReturnType<typeof createClient>
 
@@ -11,7 +12,7 @@ export const initializeRedis = () => {
       socket: {
         reconnectStrategy: (retries) => {
           if (retries > 3) {
-            console.warn('⚠️ Redis connection failed after 3 retries, continuing without Redis')
+            logger.warn('Redis connection failed after 3 retries, continuing without Redis')
             return false // Stop reconnecting
           }
           return Math.min(retries * 100, 1000)
@@ -20,30 +21,30 @@ export const initializeRedis = () => {
     })
     
     redisClient.on('error', (error) => {
-      console.warn('⚠️ Redis error (continuing without Redis):', error.message)
+      logger.warn('Redis error (continuing without Redis)', error)
     })
     
     redisClient.on('connect', () => {
-      console.log('✅ Redis connected successfully')
+      logger.info('Redis connected successfully')
     })
     
     redisClient.on('ready', () => {
-      console.log('✅ Redis ready to accept commands')
+      logger.info('Redis ready to accept commands')
     })
     
     redisClient.on('end', () => {
-      console.log('⚠️ Redis connection ended')
+      logger.warn('Redis connection ended')
     })
     
     // Connect to Redis
     redisClient.connect().catch((error) => {
-      console.error('❌ Failed to connect to Redis:', error)
+      logger.error('Failed to connect to Redis', error)
       // Don't exit process if Redis is not available
     })
     
     return redisClient
   } catch (error) {
-    console.error('❌ Failed to initialize Redis:', error)
+    logger.error('Failed to initialize Redis', error)
     // Don't exit process if Redis is not available
     return null
   }
@@ -51,7 +52,7 @@ export const initializeRedis = () => {
 
 export const getRedisClient = () => {
   if (!redisClient) {
-    console.warn('⚠️ Redis client not initialized')
+      logger.warn('Redis client not initialized')
     return null
   }
   return redisClient
@@ -81,7 +82,7 @@ export const cache = {
       }
       return true
     } catch (error) {
-      console.error('Redis set error:', error)
+      logger.error('Redis set error', error)
       return false
     }
   },
@@ -92,7 +93,7 @@ export const cache = {
       await redisClient.del(key)
       return true
     } catch (error) {
-      console.error('Redis del error:', error)
+      logger.error('Redis del error', error)
       return false
     }
   },
@@ -103,7 +104,7 @@ export const cache = {
       const result = await redisClient.exists(key)
       return result === 1
     } catch (error) {
-      console.error('Redis exists error:', error)
+      logger.error('Redis exists error', error)
       return false
     }
   },
@@ -114,7 +115,7 @@ export const cache = {
       await redisClient.flushAll()
       return true
     } catch (error) {
-      console.error('Redis flush error:', error)
+      logger.error('Redis flush error', error)
       return false
     }
   }
@@ -142,7 +143,7 @@ export const session = {
       await redisClient.expire(sessionId, ttlSeconds)
       return true
     } catch (error) {
-      console.error('Redis expire error:', error)
+      logger.error('Redis expire error', error)
       return false
     }
   }
@@ -165,7 +166,7 @@ export const rateLimit = {
       
       return { allowed, remaining, resetTime: Date.now() + (windowSeconds * 1000) }
     } catch (error) {
-      console.error('Redis rate limit error:', error)
+      logger.error('Redis rate limit error', error)
       return { allowed: true, remaining: limit }
     }
   }
@@ -174,7 +175,7 @@ export const rateLimit = {
 export const closeRedis = async () => {
   if (redisClient) {
     await redisClient.quit()
-    console.log('✅ Redis connection closed')
+    logger.info('Redis connection closed')
   }
 }
 

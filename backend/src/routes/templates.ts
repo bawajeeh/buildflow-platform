@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
+import { logger } from '../utils/logger'
 import { cache } from '../services/redis'
 import { authMiddleware } from '../middleware/auth'
 import { requireWebsiteAccess } from '../middleware/auth'
@@ -103,7 +104,7 @@ router.post('/export/website/:websiteId', authMiddleware, requireWebsiteAccess()
 
     res.status(201).json({ id: tpl.id, name: tpl.name, pages: tpl.pages.length })
   } catch (error: any) {
-    console.error('Template export failed:', error)
+    logger.error('Template export failed', error, { websiteId: req.params.id })
     res.status(500).json({ error: error.message || 'Failed to export template' })
   }
 })
@@ -147,7 +148,7 @@ router.post('/import', authMiddleware, requireWebsiteAccess(), async (req, res) 
 
     res.json({ success: true })
   } catch (error: any) {
-    console.error('Template import failed:', error)
+    logger.error('Template import failed', error, { websiteId: req.params.websiteId })
     res.status(500).json({ error: error.message || 'Failed to import template' })
   }
 })

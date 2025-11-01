@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { logger } from '../utils/logger'
 
 let prisma: PrismaClient
 
@@ -8,21 +9,21 @@ export const initializeDatabase = () => {
       log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
     })
     
-    console.log('✅ Database connection initialized')
+    logger.info('Database connection initialized')
     
     // Test the connection
     prisma.$connect()
       .then(() => {
-        console.log('✅ Database connected successfully')
+        logger.info('Database connected successfully')
       })
       .catch((error) => {
-        console.error('❌ Database connection failed:', error)
+        logger.error('Database connection failed', error)
         process.exit(1)
       })
     
     return prisma
   } catch (error) {
-    console.error('❌ Failed to initialize database:', error)
+    logger.error('Failed to initialize database', error)
     process.exit(1)
   }
 }
@@ -37,7 +38,7 @@ export const getPrismaClient = () => {
 export const closeDatabase = async () => {
   if (prisma) {
     await prisma.$disconnect()
-    console.log('✅ Database connection closed')
+    logger.info('Database connection closed')
   }
 }
 

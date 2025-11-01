@@ -294,68 +294,143 @@ router.get('/:id/theme', async (req, res) => {
     }
     res.json(tokens)
   } catch (error: any) {
-    console.error('Theme load error:', error)
+    logger.error('Theme load error', error, { websiteId: req.params.id })
     res.status(500).json({ error: 'Failed to load theme tokens' })
   }
 })
 
-router.put('/:id/theme', async (req, res) => {
-  try {
-    const prisma = getPrismaClient()
-    const payload = req.body || {}
-    const json = JSON.stringify(payload)
-    // upsert settings row
-    const settings = await prisma.websiteSettings.upsert({
-      where: { websiteId: req.params.id },
-      update: { customTrackingCode: json },
-      create: {
-        websiteId: req.params.id,
-        customTrackingCode: json,
-        primaryColor: payload?.colors?.primary || '#3b82f6',
-        secondaryColor: payload?.colors?.secondary || '#64748b',
-        fontFamily: payload?.typography?.fontFamily || 'Inter',
-        borderRadius: payload?.spacing?.radius || 8,
-      },
-    })
-    res.json({ ok: true, settingsId: settings.id })
-  } catch (error: any) {
-    console.error('Theme save error:', error)
-    res.status(500).json({ error: 'Failed to save theme tokens' })
+router.put('/:id/theme', validateParams(websiteIdParamsSchema), validateRequest(updateThemeSchema.partial().extend({
+  colors: z.object({
+    primary: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+    secondary: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+    text: z.string().optional(),
+    background: z.string().optional(),
+  }).optional(),
+  typography: z.object({
+    fontFamily: z.string().optional(),
+    baseSize: z.number().optional(),
+  }).optional(),
+  spacing: z.object({
+    base: z.number().optional(),
+    radius: z.number().optional(),
+  }).optional(),
+})), asyncHandler(async (req, res) => {
+  const websiteId = req.params.id
+  const userId = req.user?.id
+  
+  if (!userId) {
+    throw createError('User not authenticated', 401, 'UNAUTHORIZED')
   }
-})
+  
+  // Verify website exists and user has access
+  const website = await getPrismaClient().website.findUnique({
+    where: { id: websiteId },
+  })
+  
+  if (!website) {
+    throw createError('Website not found', 404, 'WEBSITE_NOT_FOUND')
+  }
+  
+  if (website.userId !== userId) {
+    throw createError('Insufficient permissions', 403, 'FORBIDDEN')
+  }
+  
+  const prisma = getPrismaClient()
+  const payload = req.body || {}
+  const json = JSON.stringify(payload)
+  
+  // upsert settings row
+  const settings = await prisma.websiteSettings.upsert({
+    where: { websiteId },
+    update: { customTrackingCode: json },
+    create: {
+      websiteId,
+      customTrackingCode: json,
+      primaryColor: (payload as any)?.colors?.primary || '#3b82f6',
+      secondaryColor: (payload as any)?.colors?.secondary || '#64748b',
+      fontFamily: (payload as any)?.typography?.fontFamily || 'Inter',
+      borderRadius: (payload as any)?.spacing?.radius || 8,
+    },
+  })
+  
+  logger.info('Theme saved', { websiteId, settingsId: settings.id })
+  
+  res.json({
+    success: true,
+    data: { settingsId: settings.id },
+  })
+}))
 
 // Get services for a website
-router.get('/:id/services', async (req, res) => {
-  try {
-    const services = await getPrismaClient().service.findMany({
-      where: { websiteId: req.params.id },
-      orderBy: { createdAt: 'desc' },
-    })
-    res.json(services)
-  } catch (error) {
-    console.error('Failed to fetch services:', error)
-    res.status(500).json({ error: 'Failed to fetch services' })
+router.get('/:id/services', validateParams(websiteIdParamsSchema), asyncHandler(async (req, res) => {
+  const websiteId = req.params.id
+  const userId = req.user?.id
+  
+  if (!userId) {
+    throw createError('User not authenticated', 401, 'UNAUTHORIZED')
   }
-})
+  
+  // Verify website exists and user has access
+  const website = await getPrismaClient().website.findUnique({
+    where: { id: websiteId },
+  })
+  
+  if (!website) {
+    throw createError('Website not found', 404, 'WEBSITE_NOT_FOUND')
+  }
+  
+  if (website.userId !== userId) {
+    throw createError('Insufficient permissions', 403, 'FORBIDDEN')
+  }
+  
+  const services = await getPrismaClient().service.findMany({
+    where: { websiteId },
+    orderBy: { createdAt: 'desc' },
+  })
+  
+  res.json({
+    success: true,
+    data: services,
+  })
+}))
 
 // Get products for a website
-router.get('/:id/products', async (req, res) => {
-  try {
-    const products = await getPrismaClient().product.findMany({
-      where: { websiteId: req.params.id },
-      include: {
-        images: true,
-        variants: true,
-        categories: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    })
-    res.json(products)
-  } catch (error) {
-    console.error('Failed to fetch products:', error)
-    res.status(500).json({ error: 'Failed to fetch products' })
+router.get('/:id/products', validateParams(websiteIdParamsSchema), asyncHandler(async (req, res) => {
+  const websiteId = req.params.id
+  const userId = req.user?.id
+  
+  if (!userId) {
+    throw createError('User not authenticated', 401, 'UNAUTHORIZED')
   }
-})
+  
+  // Verify website exists and user has access
+  const website = await getPrismaClient().website.findUnique({
+    where: { id: websiteId },
+  })
+  
+  if (!website) {
+    throw createError('Website not found', 404, 'WEBSITE_NOT_FOUND')
+  }
+  
+  if (website.userId !== userId) {
+    throw createError('Insufficient permissions', 403, 'FORBIDDEN')
+  }
+  
+  const products = await getPrismaClient().product.findMany({
+    where: { websiteId },
+    include: {
+      images: true,
+      variants: true,
+      categories: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  })
+  
+  res.json({
+    success: true,
+    data: products,
+  })
+}))
 
 // Publish website (alternative endpoint - forwards to publish service)
 router.post('/:id/publish', async (req, res) => {

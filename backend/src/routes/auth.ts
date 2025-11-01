@@ -302,7 +302,7 @@ router.post('/reset-password', validateRequest(resetPasswordSchema), async (req,
       message: 'Password reset successfully',
     })
   } catch (error) {
-    console.error('Reset password error:', error)
+    logger.error('Reset password error', error)
     res.status(400).json({
       success: false,
       error: 'Invalid or expired token',
@@ -358,7 +358,7 @@ router.post('/refresh', async (req, res) => {
       },
     })
   } catch (error) {
-    console.error('Refresh token error:', error)
+    logger.error('Refresh token error', error, { userId: req.user?.id })
     res.status(401).json({
       success: false,
       error: 'Invalid token',
@@ -404,7 +404,7 @@ router.get('/profile', async (req, res) => {
       data: { user: userWithoutPassword },
     })
   } catch (error) {
-    console.error('Get profile error:', error)
+    logger.error('Get profile error', error, { userId: req.user?.id })
     res.status(401).json({
       success: false,
       error: 'Invalid token',

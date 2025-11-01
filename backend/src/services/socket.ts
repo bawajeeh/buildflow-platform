@@ -1,6 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io'
 import jwt from 'jsonwebtoken'
 import { getPrismaClient } from '../services/database'
+import { logger } from '../utils/logger'
 
 
 // Types
@@ -40,10 +41,9 @@ export const initializeSocket = (io: SocketIOServer) => {
                     socket.handshake.headers?.authorization?.replace('Bearer ', '')
       
       if (!token || token === 'null' || token === 'undefined') {
-        console.error('Socket authentication failed: No token provided', {
+        logger.error('Socket authentication failed: No token provided', {
           auth: socket.handshake.auth,
           query: socket.handshake.query,
-          headers: socket.handshake.headers
         })
         return next(new Error('Authentication error: No token provided'))
       }
@@ -70,14 +70,14 @@ export const initializeSocket = (io: SocketIOServer) => {
       
       next()
     } catch (error) {
-      console.error('Socket authentication error:', error)
+      logger.error('Socket authentication error', error)
       next(new Error('Authentication error: Invalid token'))
     }
   })
 
   // Connection handling
   io.on('connection', (socket: AuthenticatedSocket) => {
-    console.log(`User ${socket.userName} connected with socket ${socket.id}`)
+    logger.info('User connected', { userId: socket.userId, socketId: socket.id, userName: socket.userName })
     
     // Store socket mapping
     if (socket.userId) {
@@ -86,7 +86,7 @@ export const initializeSocket = (io: SocketIOServer) => {
 
     // Join room
     socket.on('join-room', (roomId: string) => {
-      console.log(`User ${socket.userName} joining room ${roomId}`)
+      logger.debug('User joining room', { userId: socket.userId, roomId, userName: socket.userName })
       
       // Leave previous room if any
       if (socket.currentRoom) {
@@ -113,7 +113,7 @@ export const initializeSocket = (io: SocketIOServer) => {
 
     // Leave room
     socket.on('leave-room', (roomId: string) => {
-      console.log(`User ${socket.userName} leaving room ${roomId}`)
+      logger.debug('User leaving room', { userId: socket.userId, roomId, userName: socket.userName })
       
       socket.leave(roomId)
       removeUserFromRoom(roomId, socket.userId!)
@@ -126,7 +126,7 @@ export const initializeSocket = (io: SocketIOServer) => {
     socket.on('element-update', (data: CollaborationData) => {
       if (!socket.currentRoom) return
 
-      console.log(`Element update from ${socket.userName}:`, data.elementId)
+      logger.debug('Element update received', { userId: socket.userId, elementId: data.elementId })
 
       // Enforce locks: if element is locked by another user, deny
       const locks = locksByRoom.get(socket.currentRoom)
@@ -152,7 +152,7 @@ export const initializeSocket = (io: SocketIOServer) => {
     socket.on('element-select', (data: { elementId: string; timestamp: Date }) => {
       if (!socket.currentRoom) return
 
-      console.log(`Element selected by ${socket.userName}:`, data.elementId)
+      logger.debug('Element selected', { userId: socket.userId, elementId: data.elementId })
 
       // Broadcast to other users in the room
       socket.to(socket.currentRoom).emit('element-selected', {
@@ -226,7 +226,7 @@ export const initializeSocket = (io: SocketIOServer) => {
 
     // Disconnect handling
     socket.on('disconnect', () => {
-      console.log(`User ${socket.userName} disconnected`)
+      logger.info('User disconnected', { userId: socket.userId, socketId: socket.id, userName: socket.userName })
       
       if (socket.userId) {
         userSockets.delete(socket.userId)
@@ -251,7 +251,7 @@ export const initializeSocket = (io: SocketIOServer) => {
 
     // Error handling
     socket.on('error', (error) => {
-      console.error(`Socket error for user ${socket.userName}:`, error)
+      logger.error('Socket error', error, { userId: socket.userId, socketId: socket.id })
     })
   })
 
@@ -260,7 +260,7 @@ export const initializeSocket = (io: SocketIOServer) => {
     for (const [roomId, members] of rooms.entries()) {
       if (members.size === 0) {
         rooms.delete(roomId)
-        console.log(`Cleaned up empty room: ${roomId}`)
+        logger.debug('Cleaned up empty room', { roomId })
       }
     }
   }, 60000) // Clean up every minute
@@ -293,7 +293,7 @@ const getRoomMembers = (roomId: string): string[] => {
 const logElementUpdate = async (userId: string, elementId: string, updates: any) => {
   try {
     // Log element updates for analytics
-    console.log(`Element update logged: User ${userId}, Element ${elementId}`)
+    logger.debug('Element update logged', { userId, elementId })
     
     // You could store this in a database for analytics
     // await getPrismaClient().elementUpdateLog.create({
@@ -305,7 +305,7 @@ const logElementUpdate = async (userId: string, elementId: string, updates: any)
     //   },
     // })
   } catch (error) {
-    console.error('Error logging element update:', error)
+    logger.error('Error logging element update', error, { userId, elementId })
   }
 }
 

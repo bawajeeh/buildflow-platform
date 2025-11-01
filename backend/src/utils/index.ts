@@ -2,6 +2,7 @@
 
 import crypto from 'crypto'
 import { getPrismaClient } from '../services/database'
+import { logger } from './logger'
 
 
 // Generate random string
@@ -229,20 +230,11 @@ export const errorResponse = (error: string, statusCode: number = 400) => ({
   statusCode,
 })
 
-// Logging helpers
+// Logging helpers - DEPRECATED: Use logger from './logger' instead
 export const logError = (error: Error, context?: any) => {
-  console.error('Error:', {
-    message: error.message,
-    stack: error.stack,
-    context,
-    timestamp: new Date().toISOString(),
-  })
+  logger.error('Error logged via legacy logError', error, context)
 }
 
 export const logInfo = (message: string, data?: any) => {
-  console.log('Info:', {
-    message,
-    data,
-    timestamp: new Date().toISOString(),
-  })
+  logger.info(message, data)
 }
