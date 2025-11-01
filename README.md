@@ -43,13 +43,12 @@ BuildFlow Platform
 - PostgreSQL database
 - Prisma ORM
 - JWT authentication
-- Redis for caching
 
 **Infrastructure:**
-- Docker containerization
-- AWS/DigitalOcean deployment
+- Render (Backend + PostgreSQL)
+- Vercel (Frontend + Admin)
 - CDN integration
-- CI/CD pipeline
+- CI/CD pipeline (GitHub Actions)
 
 ## 🚀 Implementation Roadmap
 
@@ -128,9 +127,8 @@ buildflow/
 │   │   └── utils/           # Utility functions
 │   └── prisma/              # Database schema and migrations
 ├── admin-dashboard/         # Admin management interface
-├── shared/                  # Shared types and utilities
 ├── docs/                    # Documentation
-└── docker/                  # Docker configuration
+└── scripts/                 # Utility scripts
 ```
 
 ## 🚀 Getting Started
