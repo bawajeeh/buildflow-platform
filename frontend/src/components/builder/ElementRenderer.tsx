@@ -7,6 +7,7 @@ import { useAuthStore, useBuilderStore } from '@/store'
 import { API_CONFIG } from '@/config/api'
 import { resolveDataBinding, evaluateCondition, getAnimationClasses } from '@/utils/dataBinding'
 import { usePluginsStore } from '@/store/plugins'
+import { logger } from '@/utils/logger'
 
 // Element Components
 import {
@@ -327,20 +328,34 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
           useModalStore.getState().open(target || 'Modal action triggered')
         } catch {
           const content = target || 'Modal action triggered'
-          try { window.alert(content) } catch { console.log('Modal:', content) }
+          try { 
+            window.alert(content) 
+          } catch (err) { 
+            logger.warn('Modal alert failed', err)
+          }
         }
       } else if (type === 'toggle' && target) {
         // Toggle visibility of target element by id
         try {
           const { currentPage, updateElement } = useBuilderStore.getState()
-          const el = currentPage?.elements.find((x: any) => x.id === target)
-          if (el) updateElement(el.id, { isVisible: !el.isVisible } as any)
+          const el = currentPage?.elements.find((x) => x.id === target)
+          if (el) updateElement(el.id, { isVisible: !el.isVisible })
         } catch (err) {
-          console.error('Toggle interaction failed:', err)
+          logger.error('Toggle interaction failed', err)
         }
       } else if (type === 'custom' && action) {
-        // Execute custom JS
-        try { eval(action) } catch (err) { console.error('Custom action error:', err) }
+        // Execute custom JS safely - SECURITY: Use safe execution instead of eval()
+        try {
+          const { safeExecuteCode, validateCustomCode } = await import('@/utils/security')
+          const validation = validateCustomCode(action)
+          if (!validation.valid) {
+            logger.error('Custom action validation failed', { error: validation.error, action })
+            return
+          }
+          safeExecuteCode(action, { element, props: element.props })
+        } catch (err) {
+          logger.error('Custom action execution failed', err)
+        }
       }
     }
   }
@@ -363,17 +378,28 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
     }
   }, [element.customCSS, element.id])
 
-  // Phase 3: Inject custom JS
+  // Phase 3: Inject custom JS safely - SECURITY: Validate and sandbox custom code
   React.useEffect(() => {
     if (element.customJS) {
       const allow = import.meta.env.DEV || import.meta.env.VITE_ALLOW_CUSTOM_JS === 'true'
       if (!allow) return
-      try {
-        const fn = new Function('element', 'props', element.customJS)
-        fn(element, element.props)
-      } catch (err) {
-        console.error('Custom JS error:', err)
-      }
+      
+      (async () => {
+        try {
+          const { safeExecuteCode, validateCustomCode } = await import('@/utils/security')
+          const validation = validateCustomCode(element.customJS || '')
+          if (!validation.valid) {
+            logger.error('Custom JS validation failed', { 
+              error: validation.error, 
+              elementId: element.id 
+            })
+            return
+          }
+          safeExecuteCode(element.customJS || '', { element, props: element.props })
+        } catch (err) {
+          logger.error('Custom JS execution failed', err)
+        }
+      })()
     }
   }, [element.customJS, element.id, element.props])
 
