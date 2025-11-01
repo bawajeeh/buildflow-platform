@@ -56,6 +56,7 @@ router.get('/website/:websiteId', authMiddleware, validateParams(websiteIdParams
         elements: [],
         variants: undefined,
       }
+    }
   })
 
   logger.debug('Components fetched', { count: parsed.length, websiteId, userId })
