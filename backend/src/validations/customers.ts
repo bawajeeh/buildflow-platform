@@ -7,18 +7,17 @@ export const customerIdParamsSchema = z.object({
 export const createCustomerSchema = z.object({
   websiteId: z.string().uuid('Invalid website ID'),
   email: z.string().email('Invalid email address'),
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  phone: z.string().optional(),
-  address: z.record(z.any()).optional(),
+  firstName: z.string().min(1, 'First name is required').max(100),
+  lastName: z.string().min(1, 'Last name is required').max(100),
+  phone: z.string().max(20).optional(),
+  address: z.record(z.unknown()).optional(),
   tags: z.array(z.string()).optional(),
 })
 
 export const updateCustomerSchema = z.object({
-  firstName: z.string().min(1, 'First name is required').optional(),
-  lastName: z.string().min(1, 'Last name is required').optional(),
-  phone: z.string().optional(),
-  address: z.record(z.any()).optional(),
+  firstName: z.string().min(1).max(100).optional(),
+  lastName: z.string().min(1).max(100).optional(),
+  phone: z.string().max(20).optional(),
+  address: z.record(z.unknown()).optional(),
   tags: z.array(z.string()).optional(),
 })
-

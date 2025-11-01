@@ -10,14 +10,13 @@ export const websiteIdParamsSchema = z.object({
 
 export const createComponentSchema = z.object({
   websiteId: z.string().uuid('Invalid website ID'),
-  name: z.string().min(1, 'Component name is required'),
+  name: z.string().min(1, 'Component name is required').max(255),
   elements: z.array(z.any()).optional(),
-  variants: z.record(z.array(z.any())).optional(),
+  variants: z.record(z.any()).optional(),
 })
 
 export const updateComponentSchema = z.object({
-  name: z.string().min(1, 'Component name is required').optional(),
+  name: z.string().min(1).max(255).optional(),
   elements: z.array(z.any()).optional(),
-  variants: z.record(z.array(z.any())).optional(),
+  variants: z.record(z.any()).optional(),
 })
-
