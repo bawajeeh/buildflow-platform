@@ -138,8 +138,6 @@ buildflow/
 ### Prerequisites
 - Node.js 18+
 - PostgreSQL 14+
-- Redis 6+
-- Docker (optional)
 
 ### Installation
 
@@ -186,10 +184,27 @@ npm run dev
 
 ## 📚 Documentation
 
-- [API Documentation](./docs/api.md)
-- [Database Schema](./docs/database.md)
-- [Component Library](./docs/components.md)
-- [Deployment Guide](./docs/deployment.md)
+- [Quick Start Guide](./docs/DEPLOY_RENDER_VERCEL.md) - Deploy to Render + Vercel
+- [Project Structure](./docs/PROJECT_STRUCTURE.md) - Directory organization
+- [API Documentation](./docs/API.md) - API endpoints
+- [Environment Variables](./docs/ENV_EXAMPLES.md) - Configuration examples
+- [GitHub Secrets](./docs/GITHUB_SECRETS.md) - CI/CD setup
+- [Architecture](./docs/ARCHITECTURE.md) - System design
+- [Components](./docs/COMPONENTS.md) - Component library
+
+## 🚀 Deployment
+
+### Production URLs
+- **Frontend**: https://app.ain90.online
+- **Backend API**: https://api.ain90.online
+- **Admin Dashboard**: https://admin.ain90.online (optional)
+
+### Deployment Platforms
+- **Frontend & Admin**: [Vercel](https://vercel.com)
+- **Backend**: [Render](https://render.com)
+- **CI/CD**: GitHub Actions
+
+See [Deployment Guide](./docs/DEPLOY_RENDER_VERCEL.md) for detailed instructions.
 
 ## 🤝 Contributing
 
