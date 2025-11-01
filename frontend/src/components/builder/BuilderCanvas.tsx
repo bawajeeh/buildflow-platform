@@ -31,7 +31,16 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   zoom = 1,
   websiteId,
 }) => {
-  const { hoveredElement, hoverElement, addElement, updateElement } = useBuilderStore()
+  const { hoveredElement, hoverElement } = useBuilderStore()
+  
+  // Store functions in refs to prevent infinite loops
+  const addElementRef = React.useRef(useBuilderStore.getState().addElement)
+  const updateElementRef = React.useRef(useBuilderStore.getState().updateElement)
+  
+  React.useEffect(() => {
+    addElementRef.current = useBuilderStore.getState().addElement
+    updateElementRef.current = useBuilderStore.getState().updateElement
+  })
   const [draggingId, setDraggingId] = React.useState<string | null>(null)
   const dragStart = React.useRef<{ x: number; y: number; ex: number; ey: number } | null>(null)
   const [resizingId, setResizingId] = React.useState<string | null>(null)
@@ -75,7 +84,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       if (mode === 'top') y = selectionBounds.y
       if (mode === 'middle') y = selectionBounds.y + (selectionBounds.h - h) / 2
       if (mode === 'bottom') y = selectionBounds.y + selectionBounds.h - h
-      updateElement(id, { props: { x: Math.round(x), y: Math.round(y) } as any })
+      updateElementRef.current(id, { props: { x: Math.round(x), y: Math.round(y) } as any })
     }
   }
 
@@ -88,7 +97,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       const gaps = (selectionBounds.w - totalWidth) / (sorted.length - 1)
       let cursor = selectionBounds.x
       for (const el of sorted) {
-        updateElement(el.id, { props: { x: Math.round(cursor), y: el.props?.y ?? 0 } as any })
+        updateElementRef.current(el.id, { props: { x: Math.round(cursor), y: el.props?.y ?? 0 } as any })
         cursor += (el.props?.width ?? 200) + gaps
       }
     } else {
@@ -96,7 +105,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       const gaps = (selectionBounds.h - totalHeight) / (sorted.length - 1)
       let cursor = selectionBounds.y
       for (const el of sorted) {
-        updateElement(el.id, { props: { y: Math.round(cursor), x: el.props?.x ?? 0 } as any })
+        updateElementRef.current(el.id, { props: { y: Math.round(cursor), x: el.props?.x ?? 0 } as any })
         cursor += (el.props?.height ?? 60) + gaps
       }
     }
@@ -106,14 +115,14 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
     if (!page?.elements || selectedIds.size < 2) return
     const gid = `group-${Date.now()}`
     for (const id of selectedIds) {
-      updateElement(id, { props: { groupId: gid } as any })
+      updateElementRef.current(id, { props: { groupId: gid } as any })
     }
   }
 
   const ungroupSelected = () => {
     if (!page?.elements || selectedIds.size === 0) return
     for (const id of selectedIds) {
-      updateElement(id, { props: { groupId: undefined } as any })
+      updateElementRef.current(id, { props: { groupId: undefined } as any })
     }
   }
 
@@ -286,7 +295,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
           pageId: page?.id,
           parentId: undefined,
         }
-        await addElement(newElement)
+        await addElementRef.current(newElement)
         toast.success('🖼️ Image added')
         return
       } catch (error) {
@@ -313,7 +322,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         }
         
         // Show success message with emoji
-        await addElement(newElement)
+        await addElementRef.current(newElement)
         toast.success(`✅ ${elementData.name} added successfully!`, {
           duration: 2000,
           style: {
@@ -328,7 +337,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         })
       }
     }
-  }, [addElement, sortedElements.length, page?.id, freeformMode, zoom])
+  }, [sortedElements.length, page?.id, freeformMode, zoom])
 
   // Render empty state if no elements
   if (!page || sortedElements.length === 0) {
@@ -406,14 +415,15 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   const marqueeRef = React.useRef(marquee)
   const pageRef = React.useRef(page)
   const selectedIdsRef = React.useRef(selectedIds)
-  const updateElementRef = React.useRef(updateElement)
   
   React.useEffect(() => {
     marqueeRef.current = marquee
     pageRef.current = page
     selectedIdsRef.current = selectedIds
-    updateElementRef.current = updateElement
-  }, [marquee, page, selectedIds, updateElement])
+    // Update refs for store functions on every render (but don't add to deps to prevent loops)
+    addElementRef.current = useBuilderStore.getState().addElement
+    updateElementRef.current = useBuilderStore.getState().updateElement
+  }, [marquee, page, selectedIds])
 
   React.useEffect(() => {
     const onMove = (e: MouseEvent) => {
