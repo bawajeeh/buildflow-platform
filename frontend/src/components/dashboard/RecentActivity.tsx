@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { cn } from '@/utils'
 import { useAuthStore } from '@/store'
 import { API_CONFIG } from '@/config/api'
+import { logger } from '@/utils/logger'
 
 interface Activity {
   id: string
@@ -42,7 +43,7 @@ const RecentActivity: React.FC<RecentActivityProps> = ({ className }) => {
       const data = await response.json()
       setActivities(data.data || [])
     } catch (error) {
-      console.error('Error fetching recent activity:', error)
+      logger.error('Error fetching recent activity', error)
       // Fallback to empty array if API fails
       setActivities([])
     } finally {

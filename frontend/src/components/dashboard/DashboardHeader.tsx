@@ -7,6 +7,8 @@ import { User as UserType, Website } from '@/types'
 import { Button } from '@/components/ui'
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui'
 import CreateWebsiteModal from './CreateWebsiteModal'
+import { logger } from '@/utils/logger'
+import { useAuthStore } from '@/store'
 
 // Types
 interface DashboardHeaderProps {
@@ -26,9 +28,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 }) => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
+  const { logout } = useAuthStore()
+
   const handleLogout = () => {
-    // Handle logout
-    console.log('Logout')
+    logger.debug('User logout initiated')
+    logout()
   }
 
   const handleCreateWebsite = () => {
@@ -36,7 +40,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   }
 
   const handleWebsiteCreated = (website: Website) => {
-    console.log('Website created:', website)
+    logger.info('Website created', { websiteId: website.id, websiteName: website.name })
     // You could redirect to the builder here
   }
 

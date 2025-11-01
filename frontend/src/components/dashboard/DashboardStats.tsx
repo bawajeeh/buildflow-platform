@@ -11,6 +11,7 @@ import { Button } from '@/components/ui'
 import { Badge } from '@/components/ui'
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui'
 import CreateWebsiteModal from './CreateWebsiteModal'
+import { logger } from '@/utils/logger'
 
 // Types
 interface DashboardStatsProps {
@@ -169,7 +170,7 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
         // Refresh websites list
         window.location.reload()
       } catch (error) {
-        console.error('Error deleting website:', error)
+        logger.error('Error deleting website', error, { websiteId: website.id })
         alert('Failed to delete website. Please try again.')
       }
     }
@@ -192,13 +193,13 @@ const WebsiteList: React.FC<WebsiteListProps> = ({
       // Refresh websites list
       window.location.reload()
     } catch (error) {
-      console.error('Error publishing website:', error)
+      logger.error('Error publishing website', error, { websiteId: website.id })
       alert('Failed to publish website. Please try again.')
     }
   }
 
   const handleWebsiteCreated = (website: Website) => {
-    console.log('Website created:', website)
+    logger.info('Website created', { websiteId: website.id, websiteName: website.name })
     setIsCreateModalOpen(false)
   }
 

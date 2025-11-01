@@ -25,6 +25,7 @@ import { Button } from '@/components/ui'
 import { Input } from '@/components/ui'
 import { Badge } from '@/components/ui'
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui'
+import { logger } from '@/utils/logger'
 
 interface BookingsManagementProps {
   website: Website | null
@@ -62,7 +63,7 @@ const BookingsManagement: React.FC<BookingsManagementProps> = ({ website, classN
       const data = await response.json()
       setBookings(data.data || [])
     } catch (error) {
-      console.error('Error fetching bookings:', error)
+      logger.error('Error fetching bookings', error, { websiteId: website?.id })
       toast.error('Failed to fetch bookings')
       setBookings([])
     } finally {
@@ -85,7 +86,7 @@ const BookingsManagement: React.FC<BookingsManagementProps> = ({ website, classN
       const data = await response.json()
       setServices(data.data || [])
     } catch (error) {
-      console.error('Error fetching services:', error)
+      logger.error('Error fetching services', error, { websiteId: website?.id })
     }
   }
 
@@ -109,7 +110,7 @@ const BookingsManagement: React.FC<BookingsManagementProps> = ({ website, classN
       ))
       toast.success('Booking status updated successfully!')
     } catch (error) {
-      console.error('Error updating booking status:', error)
+      logger.error('Error updating booking status', error, { bookingId: booking.id, newStatus: status })
       toast.error('Failed to update booking status')
     }
   }
@@ -131,7 +132,7 @@ const BookingsManagement: React.FC<BookingsManagementProps> = ({ website, classN
         setBookings(prev => prev.filter(booking => booking.id !== bookingId))
         toast.success('Booking cancelled successfully!')
       } catch (error) {
-        console.error('Error cancelling booking:', error)
+        logger.error('Error cancelling booking', error, { bookingId: booking.id })
         toast.error('Failed to cancel booking')
       }
     }

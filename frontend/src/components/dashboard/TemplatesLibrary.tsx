@@ -29,6 +29,7 @@ import { Button } from '@/components/ui'
 import { Input } from '@/components/ui'
 import { Badge } from '@/components/ui'
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui'
+import { logger } from '@/utils/logger'
 
 interface TemplatesLibraryProps {
   website: Website | null
@@ -83,7 +84,7 @@ const TemplatesLibrary: React.FC<TemplatesLibraryProps> = ({ website, className 
       const data = await response.json()
       setTemplates(data.data || [])
     } catch (error) {
-      console.error('Error fetching templates:', error)
+      logger.error('Error fetching templates', error, { websiteId: website?.id })
       toast.error('Failed to fetch templates')
       // Fallback to mock data for demo
       setTemplates([
@@ -184,7 +185,7 @@ const TemplatesLibrary: React.FC<TemplatesLibraryProps> = ({ website, className 
       toast.success('Template applied successfully!')
       // TODO: Refresh website data or redirect to builder
     } catch (error) {
-      console.error('Error applying template:', error)
+      logger.error('Error applying template', error, { templateId: template.id, websiteId: website?.id })
       toast.error('Failed to apply template')
     }
   }
@@ -221,7 +222,7 @@ const TemplatesLibrary: React.FC<TemplatesLibraryProps> = ({ website, className 
       
       toast.success('Template downloaded successfully!')
     } catch (error) {
-      console.error('Error downloading template:', error)
+      logger.error('Error downloading template', error, { templateId: template.id })
       toast.error('Failed to download template')
     }
   }
@@ -243,7 +244,7 @@ const TemplatesLibrary: React.FC<TemplatesLibraryProps> = ({ website, className 
         setTemplates(prev => prev.filter(t => t.id !== templateId))
         toast.success('Template deleted successfully!')
       } catch (error) {
-        console.error('Error deleting template:', error)
+        logger.error('Error deleting template', error, { templateId: template.id })
         toast.error('Failed to delete template')
       }
     }

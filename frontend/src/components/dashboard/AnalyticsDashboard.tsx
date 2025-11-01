@@ -27,6 +27,7 @@ import { Badge } from '@/components/ui'
 import { Analytics, Website } from '@/types'
 import { useAuthStore } from '@/store'
 import { API_CONFIG } from '@/config/api'
+import { logger } from '@/utils/logger'
 
 interface AnalyticsDashboardProps {
   website: Website | null
@@ -60,7 +61,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ website }) => {
       const data = await response.json()
       setAnalytics(data.data || [])
     } catch (error) {
-      console.error('Error fetching analytics:', error)
+      logger.error('Error fetching analytics', error, { websiteId: website?.id, timeRange })
       // Fallback to empty array if API fails
       setAnalytics([])
     } finally {

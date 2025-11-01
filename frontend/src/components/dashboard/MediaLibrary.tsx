@@ -27,6 +27,7 @@ import { Button } from '@/components/ui'
 import { Input } from '@/components/ui'
 import { Badge } from '@/components/ui'
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui'
+import { logger } from '@/utils/logger'
 
 interface MediaLibraryProps {
   website: Website | null
@@ -78,7 +79,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ website, className }) => {
       const data = await response.json()
       setMediaItems(data.data || [])
     } catch (error) {
-      console.error('Error fetching media items:', error)
+      logger.error('Error fetching media items', error, { websiteId: website?.id })
       toast.error('Failed to fetch media items')
       setMediaItems([])
     } finally {
@@ -113,7 +114,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ website, className }) => {
       setMediaItems(prev => [...prev, ...data.data])
       toast.success(`${files.length} file(s) uploaded successfully!`)
     } catch (error) {
-      console.error('Error uploading files:', error)
+      logger.error('Error uploading files', error, { websiteId: website?.id, fileCount: files?.length })
       toast.error('Failed to upload files')
     } finally {
       setIsUploading(false)
@@ -144,7 +145,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ website, className }) => {
         setMediaItems(prev => prev.filter(item => item.id !== mediaId))
         toast.success('Media item deleted successfully!')
       } catch (error) {
-        console.error('Error deleting media item:', error)
+        logger.error('Error deleting media item', error, { mediaId: item.id })
         toast.error('Failed to delete media item')
       }
     }
@@ -163,7 +164,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({ website, className }) => {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch (error) {
-      console.error('Error downloading media:', error)
+      logger.error('Error downloading media', error, { mediaId: item.id })
       toast.error('Failed to download media')
     }
   }

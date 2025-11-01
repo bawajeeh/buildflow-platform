@@ -7,7 +7,6 @@ import toast from 'react-hot-toast'
 import { API_CONFIG } from '@/config/api'
 import { useAuthStore } from '@/store'
 import { logger } from '@/utils/logger'
-import { logger } from '@/utils/logger'
 
 // Layout Components
 import BuilderHeader from './BuilderHeader'

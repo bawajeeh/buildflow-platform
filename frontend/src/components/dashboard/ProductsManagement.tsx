@@ -29,6 +29,7 @@ import { DropdownMenu, DropdownMenuItem } from '@/components/ui'
 
 // Types
 import { Product, Order, Customer, Website } from '@/types'
+import { logger } from '@/utils/logger'
 
 interface ProductsManagementProps {
   website: Website | null
@@ -327,7 +328,7 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
                             setProducts(prev => prev.filter(p => p.id !== product.id))
                             toast.success('Product deleted successfully!')
                           } catch (error) {
-                            console.error('Error deleting product:', error)
+                            logger.error('Error deleting product', error, { productId: product.id })
                             toast.error('Failed to delete product. Please try again.')
                           }
                         }
@@ -372,7 +373,7 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
               setIsCreateModalOpen(false)
               toast.success('Product created successfully!')
             } catch (error) {
-              console.error('Error creating product:', error)
+              logger.error('Error creating product', error)
               toast.error('Failed to create product. Please try again.')
             }
           }}
@@ -410,7 +411,7 @@ const ProductsManagement: React.FC<ProductsManagementProps> = ({ website }) => {
                 setIsEditModalOpen(false)
                 toast.success('Product updated successfully!')
               } catch (error) {
-                console.error('Error updating product:', error)
+                logger.error('Error updating product', error, { productId: selectedProduct?.id })
                 toast.error('Failed to update product. Please try again.')
               }
             }}

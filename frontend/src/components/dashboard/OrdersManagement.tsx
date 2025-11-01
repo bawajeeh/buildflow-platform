@@ -24,6 +24,7 @@ import { Button } from '@/components/ui'
 import { Input } from '@/components/ui'
 import { Badge } from '@/components/ui'
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui'
+import { logger } from '@/utils/logger'
 
 interface OrdersManagementProps {
   website: Website | null
@@ -59,7 +60,7 @@ const OrdersManagement: React.FC<OrdersManagementProps> = ({ website, className 
       const data = await response.json()
       setOrders(data.data || [])
     } catch (error) {
-      console.error('Error fetching orders:', error)
+      logger.error('Error fetching orders', error, { websiteId: website?.id })
       toast.error('Failed to fetch orders')
       setOrders([])
     } finally {
@@ -91,7 +92,7 @@ const OrdersManagement: React.FC<OrdersManagementProps> = ({ website, className 
       
       toast.success('Orders exported successfully!')
     } catch (error) {
-      console.error('Error exporting orders:', error)
+      logger.error('Error exporting orders', error, { websiteId: website?.id })
       toast.error('Failed to export orders')
     }
   }
@@ -116,7 +117,7 @@ const OrdersManagement: React.FC<OrdersManagementProps> = ({ website, className 
       ))
       toast.success('Order status updated successfully!')
     } catch (error) {
-      console.error('Error updating order status:', error)
+      logger.error('Error updating order status', error, { orderId: order.id, newStatus: status })
       toast.error('Failed to update order status')
     }
   }

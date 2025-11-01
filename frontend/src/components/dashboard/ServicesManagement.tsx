@@ -24,6 +24,7 @@ import { Input } from '@/components/ui'
 import { Badge } from '@/components/ui'
 import { Modal } from '@/components/ui'
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui'
+import { logger } from '@/utils/logger'
 
 // Types
 import { Service, ServiceType, BookingStatus, PaymentStatus, ServiceStaff, Booking, Website } from '@/types'
@@ -66,7 +67,7 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
       const data = await response.json()
       setServices(data.data || [])
     } catch (error) {
-      console.error('Error fetching services:', error)
+      logger.error('Error fetching services', error, { websiteId: website?.id })
       setServices([])
     }
   }
@@ -430,7 +431,7 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
                 setIsEditModalOpen(false)
                 toast.success('Service updated successfully!')
               } catch (error) {
-                console.error('Error updating service:', error)
+                logger.error('Error updating service', error, { serviceId: selectedService?.id })
                 toast.error('Failed to update service. Please try again.')
               }
             }}

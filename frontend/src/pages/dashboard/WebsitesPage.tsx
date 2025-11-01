@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui'
 import { useWebsiteStore } from '@/store'
+import { logger } from '@/utils/logger'
 
 const WebsitesPage: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false)
@@ -25,7 +26,7 @@ const WebsitesPage: React.FC = () => {
       // Navigate to builder
       window.location.href = `/builder/${newWebsite.id}`
     } catch (error) {
-      console.error('Failed to create website:', error)
+      logger.error('Failed to create website', error)
     } finally {
       setIsCreating(false)
     }

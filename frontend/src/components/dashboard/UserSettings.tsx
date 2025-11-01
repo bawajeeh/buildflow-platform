@@ -23,6 +23,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { Input } from '@/components/ui'
 import { Badge } from '@/components/ui'
+import { logger } from '@/utils/logger'
 
 interface UserSettingsProps {
   className?: string
@@ -91,7 +92,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ className }) => {
       const data = await response.json()
       setProfile(data.data || profile)
     } catch (error) {
-      console.error('Error fetching user profile:', error)
+      logger.error('Error fetching user profile', error)
       toast.error('Failed to load user profile')
       // Use auth store data as fallback
       if (user) {
@@ -125,7 +126,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ className }) => {
 
       toast.success('Profile updated successfully!')
     } catch (error) {
-      console.error('Error updating profile:', error)
+      logger.error('Error updating profile', error)
       toast.error('Failed to update profile')
     } finally {
       setIsSaving(false)
@@ -162,7 +163,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ className }) => {
       setShowPasswordForm(false)
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
     } catch (error) {
-      console.error('Error changing password:', error)
+      logger.error('Error changing password', error)
       toast.error('Failed to change password')
     } finally {
       setIsSaving(false)
@@ -187,7 +188,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({ className }) => {
         // Redirect to login or handle logout
         window.location.href = '/login'
       } catch (error) {
-        console.error('Error deleting account:', error)
+        logger.error('Error deleting account', error)
         toast.error('Failed to delete account')
       }
     }

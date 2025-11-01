@@ -26,6 +26,7 @@ import { Button } from '@/components/ui'
 import { Input } from '@/components/ui'
 import { Badge } from '@/components/ui'
 import { DropdownMenu, DropdownMenuItem } from '@/components/ui'
+import { logger } from '@/utils/logger'
 
 interface CustomersManagementProps {
   website: Website | null
@@ -61,7 +62,7 @@ const CustomersManagement: React.FC<CustomersManagementProps> = ({ website, clas
       const data = await response.json()
       setCustomers(data.data || [])
     } catch (error) {
-      console.error('Error fetching customers:', error)
+      logger.error('Error fetching customers', error, { websiteId: website?.id })
       toast.error('Failed to fetch customers')
       setCustomers([])
     } finally {
@@ -86,7 +87,7 @@ const CustomersManagement: React.FC<CustomersManagementProps> = ({ website, clas
         setCustomers(prev => prev.filter(customer => customer.id !== customerId))
         toast.success('Customer deleted successfully!')
       } catch (error) {
-        console.error('Error deleting customer:', error)
+        logger.error('Error deleting customer', error, { customerId: customer.id })
         toast.error('Failed to delete customer')
       }
     }
@@ -109,7 +110,7 @@ const CustomersManagement: React.FC<CustomersManagementProps> = ({ website, clas
 
       toast.success('Email sent successfully!')
     } catch (error) {
-      console.error('Error sending email:', error)
+      logger.error('Error sending email', error, { customerId: customer.id })
       toast.error('Failed to send email')
     }
   }
