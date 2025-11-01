@@ -1308,7 +1308,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
 
         // Use UPDATE endpoint instead of SAVE (SAVE endpoint doesn't exist)
         const response = await fetch(API_CONFIG.ENDPOINTS.PAGES.UPDATE(currentPage.id), {
-          method: 'POST',
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
