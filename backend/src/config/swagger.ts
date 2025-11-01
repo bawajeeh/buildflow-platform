@@ -186,5 +186,5 @@ const specs = swaggerJsdoc(options)
 export const setupSwagger = (app: Express) => {
   // Temporarily disabled due to TypeScript compatibility issues
   // TODO: Fix Swagger UI TypeScript integration
-  console.log('Swagger documentation setup skipped due to TypeScript issues')
+  logger.info('Swagger documentation setup skipped due to TypeScript issues')
 }

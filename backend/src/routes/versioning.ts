@@ -84,7 +84,7 @@ router.post('/websites/:websiteId/snapshots', requireWebsiteAccess(), async (req
 
     res.status(201).json({ id: snapshot.id, name: snapshot.name, createdAt: snapshot.createdAt, pageCount: snapshot.pages.length })
   } catch (error: any) {
-    console.error('Create snapshot failed:', error)
+    logger.error('Create snapshot failed', error, { websiteId: req.params.websiteId })
     res.status(500).json({ error: error.message || 'Failed to create snapshot' })
   }
 })
@@ -142,7 +142,7 @@ router.post('/websites/:websiteId/snapshots/:snapshotId/restore', requireWebsite
 
     res.json({ success: true })
   } catch (error: any) {
-    console.error('Restore snapshot failed:', error)
+    logger.error('Restore snapshot failed', error, { snapshotId: req.params.snapshotId, websiteId: req.params.websiteId })
     res.status(500).json({ error: error.message || 'Failed to restore snapshot' })
   }
 })

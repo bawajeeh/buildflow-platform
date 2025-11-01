@@ -138,7 +138,7 @@ router.post('/publish/website/:websiteId', async (req, res) => {
 
     res.json({ websiteId, pages: output })
   } catch (error) {
-    console.error('Publish failed:', error)
+    logger.error('Publish failed', error, { websiteId: req.params.id })
     res.status(500).json({ error: 'Failed to publish website' })
   }
 })
