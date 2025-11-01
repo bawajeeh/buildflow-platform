@@ -312,42 +312,65 @@ router.delete('/:id', async (req, res) => {
 })
 
 // Theme tokens per-website
-router.get('/:id/theme', async (req, res) => {
-  try {
-    const prisma = getPrismaClient()
-    const settings = await prisma.websiteSettings.findUnique({ where: { websiteId: req.params.id } })
-    let tokens: any = null
-    // Reuse customTrackingCode to store theme JSON if available, otherwise map from existing fields
-    if (settings?.customTrackingCode) {
-      try { tokens = JSON.parse(settings.customTrackingCode) } catch { tokens = null }
-    }
-    if (!tokens && settings) {
-      tokens = {
-        colors: {
-          primary: settings.primaryColor || '#3b82f6',
-          secondary: settings.secondaryColor || '#64748b',
-          text: '#111827',
-          background: '#ffffff',
-        },
-        typography: { fontFamily: settings.fontFamily || 'Inter', baseSize: 16 },
-        spacing: { base: 8, radius: settings.borderRadius || 8 },
-      }
-    }
-    if (!tokens) {
-      tokens = {
-        colors: { primary: '#3b82f6', secondary: '#8b5cf6', text: '#111827', background: '#ffffff' },
-        typography: { fontFamily: 'Inter', baseSize: 16 },
-        spacing: { base: 8, radius: 8 },
-      }
-    }
-    res.json({
-      success: true,
-      data: tokens,
-    })
-  } catch (error: unknown) {
-    logger.error('Theme load error', error, { websiteId: req.params.id })
-    throw error // Let asyncHandler handle it
+router.get('/:id/theme', validateParams(websiteIdParamsSchema), asyncHandler(async (req, res) => {
+  const websiteId = req.params.id
+  const userId = req.user?.id
+  
+  if (!userId) {
+    throw createError('User not authenticated', 401, 'UNAUTHORIZED')
   }
+  
+  // Verify website exists and user has access
+  const website = await getPrismaClient().website.findUnique({
+    where: { id: websiteId },
+  })
+  
+  if (!website) {
+    throw createError('Website not found', 404, 'WEBSITE_NOT_FOUND')
+  }
+  
+  if (website.userId !== userId) {
+    throw createError('Insufficient permissions', 403, 'FORBIDDEN')
+  }
+  
+  const prisma = getPrismaClient()
+  const settings = await prisma.websiteSettings.findUnique({ where: { websiteId } })
+  let tokens: Record<string, unknown> | null = null
+  
+  // Reuse customTrackingCode to store theme JSON if available, otherwise map from existing fields
+  if (settings?.customTrackingCode) {
+    try {
+      tokens = JSON.parse(settings.customTrackingCode) as Record<string, unknown>
+    } catch {
+      tokens = null
+    }
+  }
+  
+  if (!tokens && settings) {
+    tokens = {
+      colors: {
+        primary: settings.primaryColor || '#3b82f6',
+        secondary: settings.secondaryColor || '#64748b',
+        text: '#111827',
+        background: '#ffffff',
+      },
+      typography: { fontFamily: settings.fontFamily || 'Inter', baseSize: 16 },
+      spacing: { base: 8, radius: settings.borderRadius || 8 },
+    }
+  }
+  
+  if (!tokens) {
+    tokens = {
+      colors: { primary: '#3b82f6', secondary: '#8b5cf6', text: '#111827', background: '#ffffff' },
+      typography: { fontFamily: 'Inter', baseSize: 16 },
+      spacing: { base: 8, radius: 8 },
+    }
+  }
+  
+  res.json({
+    success: true,
+    data: tokens,
+  })
 }))
 
 router.put('/:id/theme', validateParams(websiteIdParamsSchema), validateRequest(updateThemeSchema.partial().extend({
