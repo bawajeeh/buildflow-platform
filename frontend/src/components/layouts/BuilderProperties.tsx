@@ -539,7 +539,7 @@ const BuilderProperties: React.FC<BuilderPropertiesProps> = ({
                              />
                            </label>
                            <div className="flex flex-col gap-1">
-                             <span className="text-xs text-gray-600">Bindings (e.g., text: "{{product.name}}")</span>
+                             <span className="text-xs text-gray-600">Bindings (e.g., text: {'{{product.name}}'})</span>
                              <textarea
                                value={JSON.stringify(selectedElement.dataBindings || {}, null, 2)}
                                onChange={(e) => {

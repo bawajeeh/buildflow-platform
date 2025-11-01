@@ -78,8 +78,9 @@ const BuilderSidebar: React.FC<BuilderSidebarProps> = ({
     editComponent,
     deleteComponent,
     renameComponent,
+    selectedElement,
+    lastPointerPosition,
   } = useBuilderStore()
-  const { currentPage, selectedElement, lastPointerPosition } = useBuilderStore()
   const { currentWebsite } = useWebsiteStore()
   const [assets, setAssets] = useState<any[]>([])
   const [assetQuery, setAssetQuery] = useState('')
