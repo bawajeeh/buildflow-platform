@@ -394,7 +394,8 @@ const ServicesManagement: React.FC<ServicesManagementProps> = ({ website }) => {
               setIsCreateModalOpen(false)
               toast.success('Service created successfully!')
             } catch (error) {
-              console.error('Error creating service:', error)
+              logger.error('Error creating service', error, { websiteId: website?.id })
+              toast.error('Failed to create service')
             }
           }}
           onCancel={() => setIsCreateModalOpen(false)}

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuthStore } from '@/store'
 import apiService from '@/services/api'
+import { logger } from '@/utils/logger'
 
 // Auth hook
 export const useAuth = () => {
@@ -78,7 +79,7 @@ export const useLocalStorage = <T>(key: string, initialValue: T) => {
       const item = window.localStorage.getItem(key)
       return item ? JSON.parse(item) : initialValue
     } catch (error) {
-      console.error(`Error reading localStorage key "${key}":`, error)
+      logger.error(`Error reading localStorage key "${key}"`, error)
       return initialValue
     }
   })
@@ -89,7 +90,7 @@ export const useLocalStorage = <T>(key: string, initialValue: T) => {
       setStoredValue(valueToStore)
       window.localStorage.setItem(key, JSON.stringify(valueToStore))
     } catch (error) {
-      console.error(`Error setting localStorage key "${key}":`, error)
+      logger.error(`Error setting localStorage key "${key}"`, error)
     }
   }, [key, storedValue])
 
@@ -190,7 +191,7 @@ export const useCopyToClipboard = () => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (error) {
-      console.error('Failed to copy text: ', error)
+      logger.error('Failed to copy text to clipboard', error)
     }
   }, [])
 

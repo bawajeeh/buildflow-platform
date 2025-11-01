@@ -81,7 +81,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             value={selectedWebsite?.id || ''}
             onChange={(e) => {
               // Handle website selection
-              console.log('Website selected:', e.target.value)
+              logger.debug('Website selected', { websiteId: e.target.value })
             }}
             className="bg-transparent border-none text-sm font-medium text-foreground focus:outline-none"
           >

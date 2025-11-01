@@ -53,7 +53,7 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({ websites = [] }) => {
         totalRevenue: 0
       })
     } catch (error) {
-      console.error('Error fetching monthly stats:', error)
+      logger.error('Error fetching monthly stats', error)
       // Calculate from websites if API fails
       const currentMonth = new Date().getMonth()
       const currentYear = new Date().getFullYear()

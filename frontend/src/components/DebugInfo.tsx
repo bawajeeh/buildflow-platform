@@ -1,17 +1,18 @@
 import React, { useEffect } from 'react'
 import { useAuthStore } from '@/store'
 import { useWebsiteStore } from '@/store'
+import { logger } from '@/utils/logger'
 
 const DebugInfo: React.FC = () => {
   const { user, token, isAuthenticated } = useAuthStore()
   const { websites, isLoading } = useWebsiteStore()
 
   useEffect(() => {
-    console.log('Debug Info:', {
-      user,
-      token: token ? 'Token exists' : 'No token',
+    logger.debug('Debug Info', {
+      user: user ? { id: user.id, email: user.email } : null,
+      hasToken: !!token,
       isAuthenticated,
-      websites,
+      websiteCount: websites.length,
       isLoading
     })
   }, [user, token, isAuthenticated, websites, isLoading])

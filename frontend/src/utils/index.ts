@@ -1,6 +1,21 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
+// Import logger for storage error handling
+let logger: any = null
+try {
+  logger = require('@/utils/logger').logger
+} catch {
+  // Fallback if logger not available
+  logger = {
+    error: (msg: string, err?: unknown) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.error(msg, err)
+      }
+    }
+  }
+}
+
 // Utility function to merge Tailwind CSS classes
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -329,7 +344,7 @@ export const storage = {
     try {
       localStorage.setItem(key, JSON.stringify(value))
     } catch (error) {
-      console.error('Failed to save to localStorage:', error)
+      logger.error('Failed to save to localStorage', error, { key })
     }
   },
   
@@ -337,7 +352,7 @@ export const storage = {
     try {
       localStorage.removeItem(key)
     } catch (error) {
-      console.error('Failed to remove from localStorage:', error)
+      logger.error('Failed to remove from localStorage', error, { key })
     }
   },
   
@@ -345,7 +360,7 @@ export const storage = {
     try {
       localStorage.clear()
     } catch (error) {
-      console.error('Failed to clear localStorage:', error)
+      logger.error('Failed to clear localStorage', error)
     }
   }
 }
@@ -365,7 +380,7 @@ export const sessionStorage = {
     try {
       window.sessionStorage.setItem(key, JSON.stringify(value))
     } catch (error) {
-      console.error('Failed to save to sessionStorage:', error)
+      logger.error('Failed to save to sessionStorage', error, { key })
     }
   },
   
@@ -373,7 +388,7 @@ export const sessionStorage = {
     try {
       window.sessionStorage.removeItem(key)
     } catch (error) {
-      console.error('Failed to remove from sessionStorage:', error)
+      logger.error('Failed to remove from sessionStorage', error, { key })
     }
   },
   
@@ -381,7 +396,7 @@ export const sessionStorage = {
     try {
       window.sessionStorage.clear()
     } catch (error) {
-      console.error('Failed to clear sessionStorage:', error)
+      logger.error('Failed to clear sessionStorage', error)
     }
   }
 }

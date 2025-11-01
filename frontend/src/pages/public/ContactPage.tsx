@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { logger } from '@/utils/logger'
 
 const ContactPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +21,11 @@ const ContactPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // In a real app, this would send the form data to a backend
-    console.log('Form submitted:', formData)
+    logger.info('Contact form submitted', { 
+      email: formData.email,
+      subject: formData.subject,
+      hasMessage: !!formData.message 
+    })
     setIsSubmitted(true)
   }
 
