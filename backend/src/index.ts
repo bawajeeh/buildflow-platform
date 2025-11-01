@@ -225,7 +225,7 @@ app.get('/api/websites/subdomain/:subdomain', async (req, res) => {
       pages: parsedPages,
     })
   } catch (error) {
-    console.error('Failed to fetch website by subdomain:', error)
+    logger.error('Failed to fetch website by subdomain', error, { subdomain: req.params.subdomain })
     res.status(500).json({ error: 'Failed to fetch website' })
   }
 })

@@ -63,11 +63,11 @@ class RealTimeService {
       
       // If no token, don't connect (authentication required)
       if (!token) {
-        console.warn('⚠️ No authentication token available for Socket.IO connection')
+        logger.warn('No authentication token available for Socket.IO connection')
         return
       }
     } catch (error) {
-      console.error('❌ Error getting auth token:', error)
+      logger.error('Error getting auth token', error)
       return
     }
 

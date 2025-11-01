@@ -292,12 +292,15 @@ router.get('/:id/theme', async (req, res) => {
         spacing: { base: 8, radius: 8 },
       }
     }
-    res.json(tokens)
-  } catch (error: any) {
+    res.json({
+      success: true,
+      data: tokens,
+    })
+  } catch (error: unknown) {
     logger.error('Theme load error', error, { websiteId: req.params.id })
-    res.status(500).json({ error: 'Failed to load theme tokens' })
+    throw error // Let asyncHandler handle it
   }
-})
+}))
 
 router.put('/:id/theme', validateParams(websiteIdParamsSchema), validateRequest(updateThemeSchema.partial().extend({
   colors: z.object({
@@ -582,7 +585,7 @@ router.post('/:id/publish', async (req, res) => {
 
     res.json({ websiteId, pages: output })
   } catch (error) {
-    console.error('Publish failed:', error)
+    logger.error('Publish failed', error, { websiteId: req.params.id })
     res.status(500).json({ error: 'Failed to publish website' })
   }
 })
