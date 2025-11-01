@@ -1,13 +1,17 @@
 import { Request, Response, NextFunction } from 'express'
+import { logger } from '../utils/logger'
 
-// Error handler middleware
+// Error handler middleware - DEPRECATED: Use enhanced errorHandler from utils/errorHandler
 export const errorHandler = (
   error: Error,
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  console.error('Error:', error)
+  logger.error('Error in legacy errorHandler', error, {
+    path: req.path,
+    method: req.method,
+  })
 
   // Prisma errors
   if (error.name === 'PrismaClientKnownRequestError') {

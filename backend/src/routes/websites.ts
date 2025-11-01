@@ -83,62 +83,110 @@ router.get('/subdomain/:subdomain', validateParams(subdomainParamsSchema), async
 })
 
 // Get all websites
-router.get('/', async (req, res) => {
-  try {
-    const websites = await getPrismaClient().website.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-          },
-        },
-        pages: true,
-        _count: {
-          select: {
-            pages: true,
-            products: true,
-            orders: true,
-          },
+router.get('/', asyncHandler(async (req, res) => {
+  const userId = req.user?.id
+  
+  if (!userId) {
+    throw createError('User not authenticated', 401, 'UNAUTHORIZED')
+  }
+  
+  const websites = await getPrismaClient().website.findMany({
+    where: { userId }, // Only return user's websites
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
         },
       },
-    })
-    res.json(websites)
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch websites' })
-  }
-})
+      pages: true,
+      _count: {
+        select: {
+          pages: true,
+          products: true,
+          orders: true,
+        },
+      },
+    },
+  })
+  
+  res.json({
+    success: true,
+    data: websites,
+  })
+}))
 
 // Get website by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const website = await getPrismaClient().website.findUnique({
-      where: { id: req.params.id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
+router.get('/:id', validateParams(websiteIdParamsSchema), asyncHandler(async (req, res) => {
+  const websiteId = req.params.id
+  const userId = req.user?.id
+  
+  if (!userId) {
+    throw createError('User not authenticated', 401, 'UNAUTHORIZED')
+  }
+  
+  const website = await getPrismaClient().website.findUnique({
+    where: { id: websiteId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+      pages: {
+        include: {
+          elements: {
+            orderBy: { order: 'asc' },
           },
         },
-        pages: true,
-        settings: true,
-        products: true,
-        services: true,
       },
-    })
-    if (!website) {
-      return res.status(404).json({ error: 'Website not found' })
-    }
-    res.json(website)
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch website' })
+      settings: true,
+      products: true,
+      services: true,
+    },
+  })
+  
+  if (!website) {
+    throw createError('Website not found', 404, 'WEBSITE_NOT_FOUND')
   }
-})
+  
+  // Verify user owns the website
+  if (website.userId !== userId) {
+    throw createError('Insufficient permissions', 403, 'FORBIDDEN')
+  }
+  
+  // Safe JSON parsing for elements
+  const parseJsonField = (field: string | unknown) => {
+    try {
+      return typeof field === 'string' ? JSON.parse(field) : field
+    } catch {
+      return {}
+    }
+  }
+  
+  const parsedPages = website.pages.map(page => ({
+    ...page,
+    elements: page.elements.map(el => ({
+      ...el,
+      props: parseJsonField(el.props),
+      styles: parseJsonField(el.styles),
+      responsive: parseJsonField(el.responsive),
+    })),
+  }))
+  
+  res.json({
+    success: true,
+    data: {
+      ...website,
+      pages: parsedPages,
+    },
+  })
+}))
 
 // Create new website
 router.post('/', validateRequest(createWebsiteSchema), async (req, res, next) => {

@@ -66,7 +66,7 @@ export const cache = {
       const value = await redisClient.get(key)
       return value ? JSON.parse(value) : null
     } catch (error) {
-      console.error('Redis get error:', error)
+      logger.error('Redis get error', error, { key })
       return null
     }
   },
