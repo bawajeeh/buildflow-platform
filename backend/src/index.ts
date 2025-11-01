@@ -52,8 +52,15 @@ const app = express()
 const server = createServer(app)
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: [
+      process.env.FRONTEND_URL || 'http://localhost:3000',
+      'https://app.ain90.online',
+      'https://admin.ain90.online',
+      'http://localhost:3000',
+      'http://localhost:3001'
+    ],
     methods: ['GET', 'POST'],
+    credentials: true,
   },
 })
 
@@ -81,6 +88,8 @@ app.use(cors({
   origin: [
     'https://ain90.online',
     'https://www.ain90.online',
+    'https://app.ain90.online',
+    'https://admin.ain90.online',
     'https://buildflow-platform-frontend.vercel.app',
     'https://buildflow-platform-frontend-tmbq.vercel.app',
     'https://buildflow-platform-frontend-3bfn.vercel.app',
