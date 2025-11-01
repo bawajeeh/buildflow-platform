@@ -34,9 +34,17 @@ export const initializeSocket = (io: SocketIOServer) => {
   // Authentication middleware
   io.use(async (socket: AuthenticatedSocket, next) => {
     try {
-      const token = socket.handshake.auth.token
+      // Try to get token from auth object first, then from query/headers as fallback
+      const token = socket.handshake.auth?.token || 
+                    socket.handshake.query?.token as string ||
+                    socket.handshake.headers?.authorization?.replace('Bearer ', '')
       
-      if (!token) {
+      if (!token || token === 'null' || token === 'undefined') {
+        console.error('Socket authentication failed: No token provided', {
+          auth: socket.handshake.auth,
+          query: socket.handshake.query,
+          headers: socket.handshake.headers
+        })
         return next(new Error('Authentication error: No token provided'))
       }
 

@@ -55,15 +55,28 @@ class RealTimeService {
   connect(): void {
     if (this.socket?.connected) return
 
-    const token = (() => {
-      try { return useAuthStore.getState().token || null } catch { return null }
-    })()
+    // Get token with better error handling
+    let token: string | null = null
+    try {
+      const authState = useAuthStore.getState()
+      token = authState?.token || null
+      
+      // If no token, don't connect (authentication required)
+      if (!token) {
+        console.warn('⚠️ No authentication token available for Socket.IO connection')
+        return
+      }
+    } catch (error) {
+      console.error('❌ Error getting auth token:', error)
+      return
+    }
 
     this.socket = io(this.config.serverUrl, {
       transports: ['websocket', 'polling'],
       timeout: 20000,
       forceNew: true,
-      auth: token ? { token } : undefined,
+      auth: { token }, // Always send token (never undefined)
+      withCredentials: true, // Important for CORS with credentials
     })
 
     this.setupEventListeners()
@@ -100,6 +113,12 @@ class RealTimeService {
 
     this.socket.on('connect_error', (error) => {
       console.error('❌ Connection error:', error)
+      // Don't reconnect if it's an authentication error (user needs to log in)
+      if (error.message?.includes('Authentication error')) {
+        console.error('🔐 Authentication failed - please log in again')
+        this.isConnected = false
+        return
+      }
       this.handleReconnect()
     })
 
