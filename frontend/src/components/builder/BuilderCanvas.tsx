@@ -34,14 +34,20 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   const { hoveredElement, hoverElement } = useBuilderStore()
   
   // Store functions in refs to prevent infinite loops - CRITICAL: Don't destructure addElement/updateElement!
-  const addElementRef = React.useRef(useBuilderStore.getState().addElement)
-  const updateElementRef = React.useRef(useBuilderStore.getState().updateElement)
+  // Initialize refs safely to avoid "Cannot access before initialization" errors
+  const addElementRef = React.useRef<((element: Element, parentId?: string) => Promise<void>) | null>(null)
+  const updateElementRef = React.useRef<((id: string, updates: Partial<Element>) => Promise<void>) | null>(null)
   
   // Update refs on every render - this MUST run on every render to keep refs current
   // Using layoutEffect ensures refs are updated before paint
   React.useLayoutEffect(() => {
-    addElementRef.current = useBuilderStore.getState().addElement
-    updateElementRef.current = useBuilderStore.getState().updateElement
+    try {
+      const state = useBuilderStore.getState()
+      if (state?.addElement) addElementRef.current = state.addElement
+      if (state?.updateElement) updateElementRef.current = state.updateElement
+    } catch (error) {
+      console.error('Error accessing store:', error)
+    }
   }) // No dependencies - intentionally runs every render
   const [draggingId, setDraggingId] = React.useState<string | null>(null)
   const dragStart = React.useRef<{ x: number; y: number; ex: number; ey: number } | null>(null)
@@ -86,7 +92,9 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       if (mode === 'top') y = selectionBounds.y
       if (mode === 'middle') y = selectionBounds.y + (selectionBounds.h - h) / 2
       if (mode === 'bottom') y = selectionBounds.y + selectionBounds.h - h
-      updateElementRef.current(id, { props: { x: Math.round(x), y: Math.round(y) } as any })
+            if (updateElementRef.current) {
+              updateElementRef.current(id, { props: { x: Math.round(x), y: Math.round(y) } as any })
+            }
     }
   }
 
@@ -99,7 +107,9 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       const gaps = (selectionBounds.w - totalWidth) / (sorted.length - 1)
       let cursor = selectionBounds.x
       for (const el of sorted) {
-        updateElementRef.current(el.id, { props: { x: Math.round(cursor), y: el.props?.y ?? 0 } as any })
+        if (updateElementRef.current) {
+          updateElementRef.current(el.id, { props: { x: Math.round(cursor), y: el.props?.y ?? 0 } as any })
+        }
         cursor += (el.props?.width ?? 200) + gaps
       }
     } else {
@@ -107,7 +117,9 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       const gaps = (selectionBounds.h - totalHeight) / (sorted.length - 1)
       let cursor = selectionBounds.y
       for (const el of sorted) {
-        updateElementRef.current(el.id, { props: { y: Math.round(cursor), x: el.props?.x ?? 0 } as any })
+        if (updateElementRef.current) {
+          updateElementRef.current(el.id, { props: { y: Math.round(cursor), x: el.props?.x ?? 0 } as any })
+        }
         cursor += (el.props?.height ?? 60) + gaps
       }
     }
@@ -117,14 +129,18 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
     if (!page?.elements || selectedIds.size < 2) return
     const gid = `group-${Date.now()}`
     for (const id of selectedIds) {
-      updateElementRef.current(id, { props: { groupId: gid } as any })
+      if (updateElementRef.current) {
+        updateElementRef.current(id, { props: { groupId: gid } as any })
+      }
     }
   }
 
   const ungroupSelected = () => {
     if (!page?.elements || selectedIds.size === 0) return
     for (const id of selectedIds) {
-      updateElementRef.current(id, { props: { groupId: undefined } as any })
+      if (updateElementRef.current) {
+        updateElementRef.current(id, { props: { groupId: undefined } as any })
+      }
     }
   }
 
@@ -297,6 +313,9 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
           pageId: page?.id,
           parentId: undefined,
         }
+        if (!addElementRef.current) {
+          throw new Error('addElement function not available')
+        }
         await addElementRef.current(newElement)
         toast.success('🖼️ Image added')
         return
@@ -324,6 +343,9 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         }
         
         // Show success message with emoji
+        if (!addElementRef.current) {
+          throw new Error('addElement function not available')
+        }
         await addElementRef.current(newElement)
         toast.success(`✅ ${elementData.name} added successfully!`, {
           duration: 2000,
@@ -493,10 +515,14 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
             if (!start) continue
             const gx = snapGrid(start.x + (nx - (dragStart.current.ex)))
             const gy = snapGrid(start.y + (ny - (dragStart.current.ey)))
-            updateElementRef.current(id, { props: { x: gx, y: gy } as any })
+            if (updateElementRef.current) {
+              updateElementRef.current(id, { props: { x: gx, y: gy } as any })
+            }
           }
         } else {
-          updateElementRef.current(draggingIdRef.current, { props: { x: snapGrid(nx), y: snapGrid(ny) } as any })
+          if (updateElementRef.current && draggingIdRef.current) {
+            updateElementRef.current(draggingIdRef.current, { props: { x: snapGrid(nx), y: snapGrid(ny) } as any })
+          }
         }
         return
       }
@@ -511,14 +537,18 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         if (dir.includes('n')) { nh = eh - dy; ny = ey + dy }
         const snap = (v: number) => Math.max(10, Math.round(v / 10) * 10)
         setGuides(null)
-        updateElementRef.current(resizingIdRef.current, { props: { x: snap(nx), y: snap(ny), width: snap(nw), height: snap(nh) } as any })
+        if (updateElementRef.current && resizingIdRef.current) {
+          updateElementRef.current(resizingIdRef.current, { props: { x: snap(nx), y: snap(ny), width: snap(nw), height: snap(nh) } as any })
+        }
         return
       }
       if (rotatingIdRef.current && rotateStart.current) {
         const a = Math.atan2(e.clientY - rotateStart.current.cy, e.clientX - rotateStart.current.cx)
         const angle = (rotateStart.current.baseAngle + (a - rotateStart.current.startAngle)) * (180 / Math.PI)
         const snapped = Math.round(angle / 15) * 15
-        updateElementRef.current(rotatingIdRef.current, { props: { rotate: snapped } as any })
+        if (updateElementRef.current && rotatingIdRef.current) {
+          updateElementRef.current(rotatingIdRef.current, { props: { rotate: snapped } as any })
+        }
       }
     }
     const onUp = () => {
