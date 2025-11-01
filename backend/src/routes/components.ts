@@ -1,5 +1,10 @@
 import { Router } from 'express'
+import { z } from 'zod'
 import { getPrismaClient } from '../services/database'
+import { logger } from '../utils/logger'
+import { asyncHandler, createError } from '../utils/errorHandler'
+import { validateRequest, validateParams } from '../middleware/validation'
+import { authMiddleware } from '../middleware/auth'
 
 const router = Router()
 
@@ -19,7 +24,7 @@ router.get('/website/:websiteId', async (req, res) => {
 
     res.json(parsed)
   } catch (error) {
-    console.error('Failed to fetch components:', error)
+    logger.error('Failed to fetch components', error, { websiteId: req.params.websiteId })
     res.status(500).json({ error: 'Failed to fetch components' })
   }
 })
@@ -41,7 +46,7 @@ router.get('/:id', async (req, res) => {
       variants: component.variants ? JSON.parse(component.variants) : undefined,
     })
   } catch (error) {
-    console.error('Failed to fetch component:', error)
+    logger.error('Failed to fetch component', error, { componentId: req.params.id })
     res.status(500).json({ error: 'Failed to fetch component' })
   }
 })
@@ -66,7 +71,7 @@ router.post('/', async (req, res) => {
       variants: component.variants ? JSON.parse(component.variants) : undefined,
     })
   } catch (error) {
-    console.error('Failed to create component:', error)
+    logger.error('Failed to create component', error, { websiteId: req.body.websiteId })
     res.status(500).json({ error: 'Failed to create component' })
   }
 })
@@ -91,7 +96,7 @@ router.put('/:id', async (req, res) => {
       variants: component.variants ? JSON.parse(component.variants) : undefined,
     })
   } catch (error) {
-    console.error('Failed to update component:', error)
+    logger.error('Failed to update component', error, { componentId: req.params.id })
     res.status(500).json({ error: 'Failed to update component' })
   }
 })
@@ -105,7 +110,7 @@ router.delete('/:id', async (req, res) => {
 
     res.json({ message: 'Component deleted' })
   } catch (error) {
-    console.error('Failed to delete component:', error)
+    logger.error('Failed to delete component', error, { componentId: req.params.id })
     res.status(500).json({ error: 'Failed to delete component' })
   }
 })

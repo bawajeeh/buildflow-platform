@@ -1,6 +1,11 @@
 import { Router } from 'express'
+import { z } from 'zod'
 import { getPrismaClient } from '../services/database'
 import { cache } from '../services/redis'
+import { logger } from '../utils/logger'
+import { asyncHandler, createError } from '../utils/errorHandler'
+import { validateRequest, validateParams } from '../middleware/validation'
+import { authMiddleware } from '../middleware/auth'
 
 const router = Router()
 // GET /api/websites/:websiteId/services - list services for a website
@@ -17,7 +22,7 @@ router.get('/websites/:websiteId/services', async (req, res) => {
     await cache.set(cacheKey, items, 60)
     res.json(items)
   } catch (error) {
-    console.error('Failed to fetch services:', error)
+    logger.error('Failed to fetch services', error, { websiteId: req.params.websiteId })
     res.status(500).json({ error: 'Failed to fetch services' })
   }
 })

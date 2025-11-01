@@ -3,6 +3,7 @@ import { getPrismaClient } from '../services/database'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
+import { logger } from '../utils/logger'
 
 const router = Router()
 // PATCH /api/media/:id - rename media originalName

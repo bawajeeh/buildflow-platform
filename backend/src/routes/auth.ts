@@ -6,6 +6,7 @@ import { validateRequest } from '../middleware/validation'
 import { sendEmail } from '../services/email'
 import { getPrismaClient } from '../services/database'
 import { logger } from '../utils/logger'
+import { asyncHandler, createError } from '../utils/errorHandler'
 
 const router = express.Router()
 
