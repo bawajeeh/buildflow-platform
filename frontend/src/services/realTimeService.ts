@@ -2,6 +2,7 @@
 
 import { io, Socket } from 'socket.io-client'
 import { useAuthStore } from '@/store'
+import { logger } from '@/utils/logger'
 import { API_CONFIG } from '@/config/api'
 
 interface RealTimeConfig {
@@ -96,13 +97,13 @@ class RealTimeService {
     if (!this.socket) return
 
     this.socket.on('connect', () => {
-      console.log('✅ Connected to real-time server')
+      logger.info('Connected to real-time server')
       this.isConnected = true
       this.reconnectAttempts = 0
     })
 
     this.socket.on('disconnect', (reason) => {
-      console.log('❌ Disconnected from real-time server:', reason)
+      logger.warn('Disconnected from real-time server', { reason })
       this.isConnected = false
       
       if (reason === 'io server disconnect') {
