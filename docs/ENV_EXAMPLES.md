@@ -19,5 +19,4 @@ PORT=5001
 DATABASE_URL=postgresql://user:pass@host:5432/buildflow
 JWT_SECRET=replace-with-strong-secret
 FRONTEND_URL=https://app.ain90.online
-REDIS_URL=redis://host:6379
 ```

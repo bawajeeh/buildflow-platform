@@ -10,7 +10,7 @@
 ## Recommended next actions
 1) Environment files
    - Ensure `frontend` and `admin-dashboard` have runtime env set in Vercel: `VITE_API_URL=https://api.ain90.online`.
-   - Backend (Render): set `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, optional `REDIS_URL`.
+   - Backend (Render): set `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`.
 
 2) Scripts unification (recommend)
    - Root Makefile or npm scripts to streamline common tasks:

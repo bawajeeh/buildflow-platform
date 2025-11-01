@@ -7,7 +7,6 @@ buildflow-platform/
 ├── frontend/              # React + Vite frontend (Builder UI)
 ├── backend/               # Node.js + Express API server
 ├── admin-dashboard/       # Admin management dashboard
-├── shared/                # Shared types and utilities
 ├── docs/                  # Project documentation
 ├── scripts/               # Utility scripts
 └── .github/               # GitHub Actions workflows

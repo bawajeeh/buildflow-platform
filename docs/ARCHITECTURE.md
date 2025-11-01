@@ -1,10 +1,10 @@
 BuildFlow Architecture (High-Level)
 
-Backend (Node/Express + Prisma + Redis + Socket.IO)
+Backend (Node/Express + Prisma + Socket.IO)
 - Entry: src/index.ts
   - Middleware: helmet, cors, compression, morgan, JSON, rateLimiter
   - Auth: authMiddleware attaches req.user (id, email, role)
-  - Services: database (Prisma), redis, socket (rooms, collaboration)
+  - Services: database (Prisma), socket (rooms, collaboration)
   - Swagger docs
   - Routes (auth required unless noted):
     - /api/auth (public for register/login)
@@ -17,12 +17,9 @@ Backend (Node/Express + Prisma + Redis + Socket.IO)
     - /api/activity, /api/webhooks, /api/backups, /api/teams, /api/billing
 
 - Persistence:
-  - PostgreSQL/SQLite via Prisma models: Website, Page, Element, Template, Product, Service, etc.
+  - PostgreSQL via Prisma models: Website, Page, Element, Template, Product, Service, etc.
   - Template used for snapshots/backups (category + pages JSON)
   - Phase 3 fields serialized under element.props.__p3 (transparent persistence)
-
-- Redis:
-  - Caching (templates list, CMS lists), activity logs, lightweight teams store
 
 - Realtime (Socket.IO):
   - Rooms per website; events for element updates, cursor-move, locks

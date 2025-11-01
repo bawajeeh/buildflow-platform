@@ -67,7 +67,6 @@ buildflow-platform/
 ├── admin-dashboard/  # Admin UI (Vercel)
 ├── docs/             # All documentation
 ├── scripts/          # Utility scripts
-├── shared/           # Shared code
 └── README.md         # Main readme
 ```
 

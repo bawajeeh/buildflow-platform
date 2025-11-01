@@ -38,13 +38,13 @@ BuildFlow is a comprehensive drag & drop website builder platform that empowers 
 │   Frontend      │    │   Backend API   │    │   Database      │
 │   (React)       │◄──►│   (Node.js)     │◄──►│   (PostgreSQL)  │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   CDN           │    │   Redis Cache   │    │   File Storage   │
-│   (CloudFlare)  │    │   (Session)     │    │   (AWS S3)      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       
+         │                       │                       
+         ▼                       ▼                       
+┌─────────────────┐    ┌─────────────────┐    
+│   CDN           │    │   File Storage   │    
+│   (Vercel)      │    │   (Vercel/Render)│    
+└─────────────────┘    └─────────────────┘    
 ```
 
 ### Technology Stack
@@ -61,14 +61,13 @@ BuildFlow is a comprehensive drag & drop website builder platform that empowers 
 - TypeScript
 - Prisma ORM
 - PostgreSQL database
-- Redis for caching
 - Socket.io for real-time communication
 
 **Infrastructure:**
-- Docker containerization
-- AWS/DigitalOcean deployment
+- Render (Backend + PostgreSQL)
+- Vercel (Frontend + Admin)
 - CDN integration
-- CI/CD pipeline
+- CI/CD pipeline (GitHub Actions)
 
 ## 🚀 Getting Started
 
@@ -76,8 +75,6 @@ BuildFlow is a comprehensive drag & drop website builder platform that empowers 
 
 - Node.js 18+
 - PostgreSQL 14+
-- Redis 6+
-- Docker (optional)
 
 ### Installation
 
@@ -134,19 +131,6 @@ npm run dev
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
 - Database: localhost:5432
-
-### Docker Setup
-
-```bash
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-```
 
 ## 🎨 Frontend Development
 
@@ -528,47 +512,19 @@ DATABASE_URL=postgresql://user:pass@host:5432/buildflow
 # JWT
 JWT_SECRET=your-production-jwt-secret
 
-# Redis
-REDIS_URL=redis://host:6379
-
 # CDN
 CDN_URL=https://cdn.yourdomain.com
-
-# AWS S3
-AWS_ACCESS_KEY_ID=your-access-key
-AWS_SECRET_ACCESS_KEY=your-secret-key
-AWS_REGION=us-east-1
-AWS_S3_BUCKET=buildflow-production
 ```
 
-#### Docker Deployment
+#### Render + Vercel Deployment
 
-```bash
-# Build production images
-docker build -f docker/backend.Dockerfile -t buildflow-backend .
-docker build -f docker/frontend.Dockerfile -t buildflow-frontend .
+1. **Set up Render PostgreSQL database**
+2. **Deploy backend to Render Web Service**
+3. **Deploy frontend to Vercel**
+4. **Deploy admin dashboard to Vercel**
+5. **Configure custom domains**
 
-# Run with docker-compose
-docker-compose -f docker-compose.prod.yml up -d
-```
-
-#### AWS Deployment
-
-1. **Set up RDS PostgreSQL instance**
-2. **Set up ElastiCache Redis cluster**
-3. **Set up S3 bucket for file storage**
-4. **Deploy using ECS or EC2**
-5. **Set up CloudFront CDN**
-6. **Configure Route 53 DNS**
-
-#### DigitalOcean Deployment
-
-1. **Create Droplet**
-2. **Install Docker and Docker Compose**
-3. **Set up managed PostgreSQL database**
-4. **Set up managed Redis**
-5. **Deploy application**
-6. **Set up load balancer**
+See [Deployment Guide](./DEPLOY_RENDER_VERCEL.md) for detailed instructions.
 
 ### CI/CD Pipeline
 
@@ -586,14 +542,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: Build and push Docker images
-        run: |
-          docker build -t buildflow-backend ./backend
-          docker build -t buildflow-frontend ./frontend
-          
       - name: Deploy to production
         run: |
-          # Deploy to your production environment
+          # Deploy to Render (backend) and Vercel (frontend)
+          # See DEPLOY_RENDER_VERCEL.md for details
 ```
 
 ## 🤝 Contributing
@@ -643,15 +595,11 @@ npm run test:all
 #### Database Connection Issues
 
 ```bash
-# Check database status
-docker-compose ps postgres
-
-# View database logs
-docker-compose logs postgres
-
-# Reset database
-docker-compose down -v
-docker-compose up -d postgres
+# Check database connection
+# Verify DATABASE_URL is correct in Render dashboard
+# Run migrations manually if needed:
+cd backend
+npx prisma migrate deploy
 ```
 
 #### Frontend Build Issues
@@ -669,14 +617,9 @@ npm run dev
 #### Backend API Issues
 
 ```bash
-# Check API logs
-docker-compose logs backend
-
-# Restart backend service
-docker-compose restart backend
-
-# Check environment variables
-docker-compose exec backend env
+# Check API logs in Render dashboard
+# Verify environment variables in Render settings
+# Check API health endpoint: https://api.ain90.online/health
 ```
 
 ### Performance Issues

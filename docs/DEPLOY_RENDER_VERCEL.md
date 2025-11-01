@@ -11,7 +11,6 @@
     - DATABASE_URL=<Render Postgres URL>
     - JWT_SECRET=<strong random>
     - FRONTEND_URL=https://app.ain90.online
-    - REDIS_URL=<optional>
 - After first deploy, run migrations:
   - Shell → npx prisma migrate deploy
 - Custom domain:
