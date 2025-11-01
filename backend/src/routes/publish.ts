@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { getPrismaClient } from '../services/database'
 import { pushActivity } from './activity'
 import { emitWebhook } from './webhooks'
+import { logger } from '../utils/logger'
 
 const router = Router()
 
