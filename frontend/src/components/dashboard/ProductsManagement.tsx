@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { cn } from '@/utils'
 import { API_CONFIG } from '@/config/api'
 import toast from 'react-hot-toast'
+import { logger } from '@/utils/logger'
 import { 
   Package, 
   Plus, 
