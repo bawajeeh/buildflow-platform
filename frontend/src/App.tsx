@@ -38,19 +38,51 @@ import FeaturesPage from '@/pages/public/FeaturesPage'
 import AboutPage from '@/pages/public/AboutPage'
 import ContactPage from '@/pages/public/ContactPage'
 import DeploymentCheckPage from '@/pages/public/DeploymentCheckPage'
+import PublishedWebsitePage from '@/pages/public/PublishedWebsitePage'
 
 // Loading Component
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 
+// Helper function to detect if we're on a subdomain that should show a published website
+const getSubdomain = (): string | null => {
+  if (typeof window === 'undefined') return null
+  const hostname = window.location.hostname
+  const parts = hostname.split('.')
+  
+  // If we have at least 3 parts (subdomain.domain.tld), return the subdomain
+  // Exclude 'www', 'app', 'admin', 'api' - these are app subdomains
+  if (parts.length >= 3) {
+    const subdomain = parts[0].toLowerCase()
+    const excluded = ['www', 'app', 'admin', 'api', 'localhost']
+    if (!excluded.includes(subdomain)) {
+      return subdomain
+    }
+  }
+  
+  return null
+}
+
 const App: React.FC = () => {
   const { user, isLoading: authLoading } = useAuthStore()
   const { currentWebsite, isLoading: websiteLoading } = useWebsiteStore()
+  const subdomain = getSubdomain()
 
   // Show loading spinner while checking authentication
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
+  // If we're on a subdomain (not app/admin), show published website
+  if (subdomain) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Routes>
+          <Route path="/*" element={<PublishedWebsitePage />} />
+        </Routes>
       </div>
     )
   }

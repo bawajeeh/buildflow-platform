@@ -30,6 +30,7 @@ export const API_CONFIG = {
       LIST: `${API_BASE_URL}/api/websites`,
       CREATE: `${API_BASE_URL}/api/websites`,
       GET: (id: string) => `${API_BASE_URL}/api/websites/${id}`,
+      GET_BY_SUBDOMAIN: (subdomain: string) => `${API_BASE_URL}/api/websites/subdomain/${subdomain}`,
       UPDATE: (id: string) => `${API_BASE_URL}/api/websites/${id}`,
       DELETE: (id: string) => `${API_BASE_URL}/api/websites/${id}`,
       PUBLISH: (id: string) => `${API_BASE_URL}/api/websites/${id}/publish`,

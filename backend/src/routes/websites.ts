@@ -3,6 +3,55 @@ import { getPrismaClient } from '../services/database'
 
 const router = Router()
 
+// Get website by subdomain (public route for serving published websites)
+router.get('/subdomain/:subdomain', async (req, res) => {
+  try {
+    const { subdomain } = req.params
+    const website = await getPrismaClient().website.findUnique({
+      where: { subdomain },
+      include: {
+        pages: {
+          where: { isPublished: true },
+          include: {
+            elements: {
+              orderBy: { order: 'asc' },
+            },
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+        settings: true,
+      },
+    })
+    
+    if (!website) {
+      return res.status(404).json({ error: 'Website not found' })
+    }
+    
+    if (website.status !== 'PUBLISHED') {
+      return res.status(404).json({ error: 'Website not published' })
+    }
+    
+    // Parse JSON fields for elements
+    const parsedPages = website.pages.map(page => ({
+      ...page,
+      elements: page.elements.map(el => ({
+        ...el,
+        props: typeof el.props === 'string' ? JSON.parse(el.props) : el.props,
+        styles: typeof el.styles === 'string' ? JSON.parse(el.styles) : el.styles,
+        responsive: typeof el.responsive === 'string' ? JSON.parse(el.responsive) : el.responsive,
+      })),
+    }))
+    
+    res.json({
+      ...website,
+      pages: parsedPages,
+    })
+  } catch (error) {
+    console.error('Failed to fetch website by subdomain:', error)
+    res.status(500).json({ error: 'Failed to fetch website' })
+  }
+})
+
 // Get all websites
 router.get('/', async (req, res) => {
   try {
