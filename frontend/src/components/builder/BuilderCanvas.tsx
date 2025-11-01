@@ -37,11 +37,12 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   const addElementRef = React.useRef(useBuilderStore.getState().addElement)
   const updateElementRef = React.useRef(useBuilderStore.getState().updateElement)
   
-  // Update refs on every render without dependencies to always have latest functions
-  React.useEffect(() => {
+  // Update refs on every render - this MUST run on every render to keep refs current
+  // Using layoutEffect ensures refs are updated before paint
+  React.useLayoutEffect(() => {
     addElementRef.current = useBuilderStore.getState().addElement
     updateElementRef.current = useBuilderStore.getState().updateElement
-  }) // Empty dependency array means this runs once per render, which is fine for refs
+  }) // No dependencies - intentionally runs every render
   const [draggingId, setDraggingId] = React.useState<string | null>(null)
   const dragStart = React.useRef<{ x: number; y: number; ex: number; ey: number } | null>(null)
   const [resizingId, setResizingId] = React.useState<string | null>(null)
@@ -171,7 +172,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       />
     )
 
-    if (!freeformMode) return inner
+    if (!freeformModeRef.current) return inner
 
     const x = element.props?.x ?? 40
     const y = element.props?.y ?? 40
@@ -213,7 +214,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       top: y,
       width: w,
       height: h,
-      cursor: draggingId === element.id ? 'grabbing' : 'grab',
+      cursor: draggingIdRef.current === element.id ? 'grabbing' : 'grab',
       transform: `rotate(${element.props?.rotate || 0}deg)`,
       transformOrigin: 'center',
     }
@@ -270,7 +271,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         )}
       </div>
     )
-  }, [selectedElement, hoveredElement, responsiveMode, handleElementClick, handleElementHover, freeformMode, draggingId, onElementSelect])
+  }, [selectedElement, hoveredElement, responsiveMode, handleElementClick, handleElementHover, freeformMode, onElementSelect]) // Removed draggingId - causes infinite loop
 
   // Handle drop event
   const handleDrop = useCallback(async (e: React.DragEvent) => {
@@ -279,11 +280,11 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
     
     const data = e.dataTransfer.getData('application/json')
     const assetUrl = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('text/plain')
-    if (assetUrl && freeformMode) {
+    if (assetUrl && freeformModeRef.current) {
       try {
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-        const dropX = (e.clientX - rect.left) / (zoom || 1)
-        const dropY = (e.clientY - rect.top) / (zoom || 1)
+        const dropX = (e.clientX - rect.left) / (zoomRef.current || 1)
+        const dropY = (e.clientY - rect.top) / (zoomRef.current || 1)
         const newElement: Element = {
           id: `element-${Date.now()}`,
           type: 'IMAGE' as any,
@@ -307,13 +308,13 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       try {
         const elementData = JSON.parse(data)
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-        const dropX = (e.clientX - rect.left) / (zoom || 1)
-        const dropY = (e.clientY - rect.top) / (zoom || 1)
+        const dropX = (e.clientX - rect.left) / (zoomRef.current || 1)
+        const dropY = (e.clientY - rect.top) / (zoomRef.current || 1)
         const newElement: Element = {
           id: `element-${Date.now()}`,
           type: elementData.type.toUpperCase() as any,
           name: elementData.name,
-          props: freeformMode ? { x: Math.max(0, Math.round(dropX)), y: Math.max(0, Math.round(dropY)), width: 240 } : {},
+          props: freeformModeRef.current ? { x: Math.max(0, Math.round(dropX)), y: Math.max(0, Math.round(dropY)), width: 240 } : {},
           styles: {},
           order: sortedElements.length,
           isVisible: true,
@@ -338,7 +339,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         })
       }
     }
-  }, [sortedElements.length, page?.id, freeformMode, zoom])
+  }, [sortedElements.length, page?.id]) // Removed freeformMode and zoom - use refs instead
 
   // Render empty state if no elements
   if (!page || sortedElements.length === 0) {
@@ -422,7 +423,9 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   const zoomRef = React.useRef(zoom)
   const freeformModeRef = React.useRef(freeformMode)
   
-  React.useEffect(() => {
+  // Update all refs on every render to keep them current
+  // This MUST run on every render - using layoutEffect to update before paint
+  React.useLayoutEffect(() => {
     marqueeRef.current = marquee
     pageRef.current = page
     selectedIdsRef.current = selectedIds
@@ -431,10 +434,10 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
     rotatingIdRef.current = rotatingId
     zoomRef.current = zoom
     freeformModeRef.current = freeformMode
-    // Update refs for store functions on every render (but don't add to deps to prevent loops)
+    // Update refs for store functions
     addElementRef.current = useBuilderStore.getState().addElement
     updateElementRef.current = useBuilderStore.getState().updateElement
-  }, [marquee, page, selectedIds, draggingId, resizingId, rotatingId, zoom, freeformMode])
+  }) // Intentionally NO dependencies - runs on every render to keep refs current
 
   React.useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -591,7 +594,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         } catch {}
       }}
       onMouseDown={(e) => {
-        if (!freeformMode) return
+        if (!freeformModeRef.current) return
         // start marquee if clicked on canvas background
         if (e.target === e.currentTarget) {
           setMarquee({ x: e.clientX, y: e.clientY, w: 0, h: 0 })
@@ -604,14 +607,14 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
       >
         <div className="relative">
           {/* Smart guides visuals */}
-          {freeformMode && guides?.v !== undefined && (
+          {freeformModeRef.current && guides?.v !== undefined && (
             <div className="absolute top-0 bottom-0 border-r-2 border-pink-500/70 pointer-events-none" style={{ left: guides.v }} />
           )}
-          {freeformMode && guides?.h !== undefined && (
+          {freeformModeRef.current && guides?.h !== undefined && (
             <div className="absolute left-0 right-0 border-b-2 border-pink-500/70 pointer-events-none" style={{ top: guides.h }} />
           )}
           {/* Marquee selection */}
-          {freeformMode && marquee && (
+          {freeformModeRef.current && marquee && (
             <div
               className="absolute bg-blue-500/10 border border-blue-500/60 pointer-events-none"
               style={{ left: Math.min(marquee.x, marquee.x + marquee.w), top: Math.min(marquee.y, marquee.y + marquee.h), width: Math.abs(marquee.w), height: Math.abs(marquee.h) }}
@@ -667,7 +670,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
           </DropZone>
         </div>
         {/* Context toolbar for selection */}
-        {freeformMode && selectionBounds && selectedIds.size >= 2 && (
+        {freeformModeRef.current && selectionBounds && selectedIds.size >= 2 && (
           <div
             className="absolute z-20 bg-white/95 backdrop-blur border border-gray-200 rounded-md shadow-md text-xs flex items-center divide-x divide-gray-200"
             style={{ left: selectionBounds.x, top: Math.max(0, selectionBounds.y - 32) }}

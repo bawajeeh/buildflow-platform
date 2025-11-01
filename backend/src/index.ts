@@ -41,7 +41,7 @@ import { rateLimiter } from './middleware/rateLimiter'
 import { authMiddleware } from './middleware/auth'
 
 // Import services
-import { initializeDatabase } from './services/database'
+import { initializeDatabase, getPrismaClient } from './services/database'
 import { initializeRedis } from './services/redis'
 import { initializeSocket } from './services/socket'
 
