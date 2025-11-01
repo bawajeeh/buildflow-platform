@@ -197,15 +197,22 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           // If no pages exist, create a default page
           const { pages } = useBuilderStore.getState()
           if (pages.length === 0) {
-            await createPage({
-              name: 'Home Page',
-              slug: 'home',
-              title: 'Home Page',
-              isHomePage: true
-            })
+            try {
+              await createPage({
+                name: 'Home Page',
+                slug: 'home',
+                title: 'Home Page',
+                isHomePage: true
+              })
+            } catch (pageError) {
+              console.error('Failed to create default page:', pageError)
+              // Don't block UI - user can create page manually
+            }
           }
         } catch (error) {
           console.error('Failed to fetch pages:', error)
+          // Show error toast but don't crash
+          toast.error('Failed to load pages. Please refresh.')
         }
       }
     }

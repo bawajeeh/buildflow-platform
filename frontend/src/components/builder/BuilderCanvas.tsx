@@ -124,8 +124,8 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
 
   // Get page elements sorted by order
   const sortedElements = useMemo(() => {
-    if (!page?.elements) return []
-    return [...page.elements].sort((a, b) => a.order - b.order)
+    if (!page?.elements || !Array.isArray(page.elements)) return []
+    return [...page.elements].sort((a, b) => (a.order || 0) - (b.order || 0))
   }, [page?.elements])
 
   // Handle element click
