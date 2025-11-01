@@ -87,84 +87,128 @@ const App: React.FC = () => {
     )
   }
 
+  const getSubdomain = (): string | null => {
+    if (typeof window === 'undefined') return null
+    const hostname = window.location.hostname
+    const parts = hostname.split('.')
+    if (parts.length >= 3) {
+      const subdomain = parts[0].toLowerCase()
+      const excluded = ['www', 'app', 'admin', 'api', 'localhost']
+      if (!excluded.includes(subdomain)) {
+        return subdomain
+      }
+    }
+    return null
+  }
+
+  const subdomain = getSubdomain()
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <LoadingSpinner size="lg" />
+      </div>
+    )
+  }
+
+  // If we're on a subdomain (not app/admin), show published website
+  if (subdomain) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Suspense fallback={<LoadingSpinner size="lg" />}>
+          <Routes>
+            <Route path="/*" element={<PublishedWebsitePage />} />
+          </Routes>
+        </Suspense>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
-        <Route path="/features" element={<FeaturesPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/deploy-check" element={<DeploymentCheckPage />} />
+      <Suspense fallback={<LoadingSpinner size="lg" />}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/features" element={<FeaturesPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/deploy-check" element={<DeploymentCheckPage />} />
 
-        {/* Auth Routes */}
-        <Route
-          path="/auth/*"
-          element={
-            user ? (
-              <Navigate to="/dashboard" replace />
-            ) : (
-              <AuthLayout>
-                <Routes>
-                  <Route path="login" element={<LoginPage />} />
-                  <Route path="register" element={<RegisterPage />} />
-                  <Route path="forgot-password" element={<ForgotPasswordPage />} />
-                  <Route path="reset-password" element={<ResetPasswordPage />} />
-                  <Route path="*" element={<Navigate to="/auth/login" replace />} />
-                </Routes>
-              </AuthLayout>
-            )
-          }
-        />
-
-        {/* Dashboard Routes */}
-        <Route
-          path="/dashboard/*"
-          element={
-            user ? (
-              <DashboardLayout>
-                <Routes>
-                  <Route path="" element={<DashboardHomePage />} />
-                  <Route path="websites" element={<WebsitesPage />} />
-                  <Route path="websites/:id/settings" element={<WebsiteSettingsPage />} />
-                  <Route path="analytics" element={<AnalyticsPage />} />
-                  <Route path="products" element={<ProductsPage />} />
-                  <Route path="orders" element={<OrdersPage />} />
-                  <Route path="services" element={<ServicesPage />} />
-                  <Route path="bookings" element={<BookingsPage />} />
-                  <Route path="customers" element={<CustomersPage />} />
-                  <Route path="templates" element={<TemplatesPage />} />
-                  <Route path="media" element={<MediaPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                  <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                </Routes>
-              </DashboardLayout>
-            ) : (
-              <Navigate to="/auth/login" replace />
-            )
-          }
-        />
-
-        {/* Builder Routes */}
-        <Route
-          path="/builder/:websiteId"
-          element={
-            user ? (
-              websiteLoading ? (
-                <div className="min-h-screen flex items-center justify-center bg-background">
-                  <LoadingSpinner size="lg" />
-                </div>
+          {/* Auth Routes */}
+          <Route
+            path="/auth/*"
+            element={
+              user ? (
+                <Navigate to="/dashboard" replace />
               ) : (
-                <BuilderLayout>
-                  <BuilderPage />
-                </BuilderLayout>
+                <AuthLayout>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <Routes>
+                      <Route path="login" element={<LoginPage />} />
+                      <Route path="register" element={<RegisterPage />} />
+                      <Route path="forgot-password" element={<ForgotPasswordPage />} />
+                      <Route path="reset-password" element={<ResetPasswordPage />} />
+                      <Route path="*" element={<Navigate to="/auth/login" replace />} />
+                    </Routes>
+                  </Suspense>
+                </AuthLayout>
               )
-            ) : (
-              <Navigate to="/auth/login" replace />
-            )
-          }
-        />
+            }
+          />
+
+          {/* Dashboard Routes */}
+          <Route
+            path="/dashboard/*"
+            element={
+              user ? (
+                <DashboardLayout>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <Routes>
+                      <Route path="" element={<DashboardHomePage />} />
+                      <Route path="websites" element={<WebsitesPage />} />
+                      <Route path="websites/:id/settings" element={<WebsiteSettingsPage />} />
+                      <Route path="analytics" element={<AnalyticsPage />} />
+                      <Route path="products" element={<ProductsPage />} />
+                      <Route path="orders" element={<OrdersPage />} />
+                      <Route path="services" element={<ServicesPage />} />
+                      <Route path="bookings" element={<BookingsPage />} />
+                      <Route path="customers" element={<CustomersPage />} />
+                      <Route path="templates" element={<TemplatesPage />} />
+                      <Route path="media" element={<MediaPage />} />
+                      <Route path="settings" element={<SettingsPage />} />
+                      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
+                  </Suspense>
+                </DashboardLayout>
+              ) : (
+                <Navigate to="/auth/login" replace />
+              )
+            }
+          />
+
+          {/* Builder Routes */}
+          <Route
+            path="/builder/:websiteId"
+            element={
+              user ? (
+                websiteLoading ? (
+                  <div className="min-h-screen flex items-center justify-center bg-background">
+                    <LoadingSpinner size="lg" />
+                  </div>
+                ) : (
+                  <BuilderLayout>
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <BuilderPage />
+                    </Suspense>
+                  </BuilderLayout>
+                )
+              ) : (
+                <Navigate to="/auth/login" replace />
+              )
+            }
+          />
 
         {/* Preview Routes */}
         <Route

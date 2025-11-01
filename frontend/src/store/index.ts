@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import { User, Website, Page, Element, WebsiteStatus } from '../types'
 import { API_CONFIG } from '../config/api'
 import { logger } from '../utils/logger'
+import toast from 'react-hot-toast'
 
 // Auth Store
 interface AuthState {
@@ -233,7 +234,7 @@ interface WebsiteState {
   unpublishWebsite: (id: string) => Promise<void>
 }
 
-export const useWebsiteStore = create<WebsiteState>()((set) => ({
+export const useWebsiteStore = create<WebsiteState>()((set, get) => ({
   websites: [],
   currentWebsite: null,
   isLoading: false,
@@ -257,10 +258,10 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
       }
 
       const data = await response.json()
-      logger.debug('Fetched websites', { count: Array.isArray(data) ? data.length : 'unknown' })
+      logger.debug('Fetched websites', { count: Array.isArray(data?.data) ? data.data.length : Array.isArray(data) ? data.length : 0 })
       
       set({
-        websites: data,
+        websites: data?.data || data || [],
         isLoading: false,
       })
     } catch (error) {
@@ -425,6 +426,11 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
     }
   },
 }))
+
+// Optimized selectors for WebsiteStore
+export const useCurrentWebsite = () => useWebsiteStore((state) => state.currentWebsite)
+export const useWebsitesList = () => useWebsiteStore((state) => state.websites)
+export const useIsWebsiteLoading = () => useWebsiteStore((state) => state.isLoading)
 
 // Builder Store
 interface BuilderState {
@@ -1357,7 +1363,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
       name: `${element.name} (Copy)`,
     }
     
-    await addElement(duplicatedElement, element.parentId)
+    await get().addElement(duplicatedElement, element.parentId)
     toast.success('Element duplicated!')
   },
 
@@ -1384,7 +1390,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
       name: `${clipboard.name} (Pasted)`,
     }
     
-    await addElement(pastedElement, clipboard.parentId)
+    await get().addElement(pastedElement, clipboard.parentId)
     toast.success('Element pasted!')
   },
 
