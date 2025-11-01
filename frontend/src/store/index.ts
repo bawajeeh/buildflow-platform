@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { User, Website, Page, Element, WebsiteStatus } from '../types'
 import { API_CONFIG } from '../config/api'
+import { logger } from '../utils/logger'
 
 // Auth Store
 interface AuthState {
@@ -64,7 +65,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true })
         try {
           // API call to Render backend
-          console.log('Register API URL:', API_CONFIG.ENDPOINTS.AUTH.REGISTER)
+          logger.debug('Register API URL:', API_CONFIG.ENDPOINTS.AUTH.REGISTER)
           const response = await fetch(API_CONFIG.ENDPOINTS.AUTH.REGISTER, {
             method: 'POST',
             headers: {
@@ -249,21 +250,21 @@ export const useWebsiteStore = create<WebsiteState>()((set) => ({
         },
       })
 
-      console.log('Response status:', response.status)
+      logger.debug('Websites response status', { status: response.status })
       
       if (!response.ok) {
         throw new Error('Failed to fetch websites')
       }
 
       const data = await response.json()
-      console.log('Fetched websites data:', data)
+      logger.debug('Fetched websites', { count: Array.isArray(data) ? data.length : 'unknown' })
       
       set({
         websites: data,
         isLoading: false,
       })
     } catch (error) {
-      console.error('Error fetching websites:', error)
+      logger.error('Error fetching websites', error)
       set({ isLoading: false })
       throw error
     }
@@ -623,7 +624,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
       })
       set({ components: map })
     } catch (error) {
-      console.error('Failed to load components:', error)
+      logger.error('Failed to load components', error, { websiteId })
     }
   },
 
@@ -768,7 +769,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         headers: { 'Authorization': `Bearer ${token}` },
       })
     } catch (error) {
-      console.error('Failed to delete component from backend:', error)
+      logger.error('Failed to delete component from backend', error, { componentId })
     }
 
     set((state) => {
@@ -798,7 +799,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
       })
       toast.success('Component renamed')
     } catch (error) {
-      console.error('Failed to rename component:', error)
+      logger.error('Failed to rename component', error, { componentId, newName })
       toast.error('Rename failed to save')
     }
   },
@@ -1100,14 +1101,15 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
             } : null,
           }))
         } else {
-          console.error('Failed to save element to backend:', await response.text())
+          const errorText = await response.text()
+          logger.error('Failed to save element to backend', new Error(errorText), { elementId: tempId })
         }
       } catch (backendError) {
-        console.error('Backend save failed:', backendError)
+        logger.error('Backend save failed', backendError, { elementId: tempId })
       }
     } catch (error) {
       set({ isLoading: false })
-      console.error('Error adding element:', error)
+      logger.error('Error adding element', error)
       throw error
     }
   },
@@ -1320,7 +1322,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
           console.warn('Save endpoint not available, skipping server save')
         }
       } catch {
-        console.warn('Save skipped (endpoint missing)')
+        logger.warn('Save skipped (endpoint missing)')
       }
       
       // Also save theme tokens
@@ -1328,7 +1330,7 @@ export const useBuilderStore = create<BuilderState>()((set, get) => ({
         try {
           await get().saveThemeTokens(currentWebsite.id)
         } catch {
-          console.warn('Theme tokens save skipped')
+          logger.warn('Theme tokens save skipped')
         }
       }
       

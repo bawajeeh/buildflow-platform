@@ -203,7 +203,7 @@ router.post('/login', validateRequest(loginSchema), async (req, res) => {
       },
     })
   } catch (error) {
-    console.error('Login error:', error)
+    logger.error('Login error', error, { email: req.body.email })
     res.status(500).json({
       success: false,
       error: 'Internal server error',
@@ -260,7 +260,7 @@ router.post('/forgot-password', validateRequest(forgotPasswordSchema), async (re
       message: 'If an account with that email exists, we sent you a password reset link.',
     })
   } catch (error) {
-    console.error('Forgot password error:', error)
+    logger.error('Forgot password error', error, { email: req.body.email })
     res.status(500).json({
       success: false,
       error: 'Internal server error',
@@ -447,7 +447,7 @@ router.put('/profile', async (req, res) => {
       data: { user: userWithoutPassword },
     })
   } catch (error) {
-    console.error('Update profile error:', error)
+    logger.error('Update profile error', error, { userId: req.user?.id })
     res.status(500).json({
       success: false,
       error: 'Internal server error',

@@ -3,6 +3,7 @@ import { API_CONFIG } from '@/config/api'
 import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ElementRenderer from '@/components/builder/ElementRenderer'
 import { Page, Element } from '@/types'
+import { logger } from '@/utils/logger'
 
 interface Website {
   id: string
@@ -44,7 +45,7 @@ const PublishedWebsitePage: React.FC = () => {
         const homepage = data.pages.find((p: Page) => p.isHome) || data.pages[0]
         setCurrentPage(homepage || null)
       } catch (err) {
-        console.error('Error loading website:', err)
+        logger.error('Error loading website', err, { subdomain })
         setError('Failed to load website')
       } finally {
         setIsLoading(false)

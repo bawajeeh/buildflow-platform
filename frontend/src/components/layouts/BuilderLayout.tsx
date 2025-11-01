@@ -6,6 +6,7 @@ import { useWebsiteStore } from '@/store'
 import toast from 'react-hot-toast'
 import { API_CONFIG } from '@/config/api'
 import { useAuthStore } from '@/store'
+import { logger } from '@/utils/logger'
 
 // Layout Components
 import BuilderHeader from './BuilderHeader'
@@ -80,7 +81,7 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     try {
       await addElement(element, parentId)
     } catch (error) {
-      console.error('Failed to add element:', error)
+      logger.error('Failed to add element', error)
     }
   }
 
@@ -88,7 +89,7 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     try {
       await moveElement(elementId, newParentId, newOrder)
     } catch (error) {
-      console.error('Failed to move element:', error)
+      logger.error('Failed to move element', error)
     }
   }
 
@@ -96,7 +97,7 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     try {
       await updateElement(elementId, updates)
     } catch (error) {
-      console.error('Failed to update element:', error)
+      logger.error('Failed to update element', error)
     }
   }
 
@@ -105,7 +106,7 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       await deleteElement(elementId)
       selectElement(null)
     } catch (error) {
-      console.error('Failed to delete element:', error)
+      logger.error('Failed to delete element', error)
     }
   }
 
@@ -205,12 +206,12 @@ const BuilderLayout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 isHomePage: true
               })
             } catch (pageError) {
-              console.error('Failed to create default page:', pageError)
+              logger.error('Failed to create default page', pageError)
               // Don't block UI - user can create page manually
             }
           }
         } catch (error) {
-          console.error('Failed to fetch pages:', error)
+          logger.error('Failed to fetch pages', error)
           // Show error toast but don't crash
           toast.error('Failed to load pages. Please refresh.')
         }

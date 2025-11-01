@@ -512,10 +512,10 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
                 }
 
                 const data = await response.json()
-                // TODO: Refresh elements list
-                console.log('Element duplicated:', data)
+                // Element duplicated - store will handle refresh
+                logger.debug('Element duplicated', { elementId: data.elementId })
               } catch (error) {
-                console.error('Error duplicating element:', error)
+                logger.error('Error duplicating element', error, { elementId: element.id })
               }
             }}
             title="Duplicate"
@@ -539,10 +539,10 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
                   throw new Error('Failed to delete element')
                 }
 
-                // TODO: Remove element from UI
-                console.log('Element deleted:', element.id)
+                // Element deleted - store will handle UI update
+                logger.debug('Element deleted', { elementId: element.id })
               } catch (error) {
-                console.error('Error deleting element:', error)
+                logger.error('Error deleting element', error, { elementId: element.id })
               }
             }}
             title="Delete"

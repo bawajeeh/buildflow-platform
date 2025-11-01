@@ -5,6 +5,7 @@ import { Page, Element } from '@/types'
 import realTimeService from '@/services/realTimeService'
 import { useBuilderStore } from '@/store'
 import toast from 'react-hot-toast'
+import { logger } from '@/utils/logger'
 
 // Components
 import ElementRenderer from './ElementRenderer'
@@ -154,11 +155,11 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
   // When addElement updates the store, it creates a new currentPage object, so page reference changes
   const sortedElements = useMemo(() => {
     if (!page || !page.elements || !Array.isArray(page.elements)) {
-      console.log('⚠️ sortedElements: No page or elements', { hasPage: !!page, hasElements: !!page?.elements })
+      logger.debug('sortedElements: No page or elements', { hasPage: !!page, hasElements: !!page?.elements })
       return []
     }
     const sorted = [...page.elements].sort((a, b) => (a.order || 0) - (b.order || 0))
-    console.log('✅ sortedElements recalculated:', sorted.length, 'elements from page', page.id)
+    logger.debug('sortedElements recalculated', { count: sorted.length, pageId: page.id })
     return sorted
   }, [page, page?.id, page?.elements]) // page reference changes when store updates
 
@@ -327,7 +328,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
         toast.success('🖼️ Image added')
         return
       } catch (error) {
-        console.error('Failed to drop asset:', error)
+        logger.error('Failed to drop asset', error)
       }
     }
     if (data) {
@@ -362,7 +363,7 @@ const BuilderCanvas: React.FC<BuilderCanvasProps> = ({
           },
         })
       } catch (error) {
-        console.error('Failed to add element:', error)
+        logger.error('Failed to add element', error)
         toast.error('❌ Failed to add element', {
           duration: 3000,
         })
