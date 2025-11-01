@@ -314,7 +314,7 @@ const ElementRenderer: React.FC<ElementRendererProps> = ({
   }
 
   // Phase 3: Handle interactions
-  const handleInteractionClick = (e: React.MouseEvent) => {
+  const handleInteractionClick = async (e: React.MouseEvent) => {
     onClick(e)
     if (element.interactions?.onClick) {
       const { type, target, action } = element.interactions.onClick
