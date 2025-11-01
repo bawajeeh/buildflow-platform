@@ -4,16 +4,17 @@ import { logger } from '../utils/logger'
 import { cache } from '../services/redis'
 import { authMiddleware } from '../middleware/auth'
 import { requireWebsiteAccess } from '../middleware/auth'
+import { asyncHandler, createError } from '../utils/errorHandler'
 
 const router = Router()
 
-// Get all templates
-router.get('/', async (req, res) => {
+// Get all templates - Public route (no auth required for template browsing)
+router.get('/', asyncHandler(async (req, res) => {
   try {
     const cacheKey = 'templates:list:v1'
     const cached = await cache.get(cacheKey)
     if (cached) {
-      return res.json(cached)
+      return res.json({ success: true, data: cached })
     }
 
     const templates = await getPrismaClient().template.findMany({
@@ -26,17 +27,22 @@ router.get('/', async (req, res) => {
           },
         },
       },
+      orderBy: { createdAt: 'desc' },
     })
     // cache for 60s
     await cache.set(cacheKey, templates, 60)
-    res.json(templates)
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch templates' })
-  }
-})
+    
+    logger.debug('Templates fetched', { count: templates.length })
 
-// Get template by ID
-router.get('/:id', async (req, res) => {
+    res.json({ success: true, data: templates })
+  } catch (error) {
+    logger.error('Failed to fetch templates', error)
+    throw createError('Failed to fetch templates', 500, 'TEMPLATES_FETCH_ERROR')
+  }
+}))
+
+// Get template by ID - Public route (no auth required for template viewing)
+router.get('/:id', asyncHandler(async (req, res) => {
   try {
     const template = await getPrismaClient().template.findUnique({
       where: { id: req.params.id },
@@ -47,13 +53,17 @@ router.get('/:id', async (req, res) => {
       },
     })
     if (!template) {
-      return res.status(404).json({ error: 'Template not found' })
+      throw createError('Template not found', 404, 'TEMPLATE_NOT_FOUND')
     }
-    res.json(template)
+
+    logger.debug('Template fetched', { templateId: req.params.id })
+
+    res.json({ success: true, data: template })
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch template' })
+    logger.error('Failed to fetch template', error, { templateId: req.params.id })
+    throw createError('Failed to fetch template', 500, 'TEMPLATE_FETCH_ERROR')
   }
-})
+}))
 
 // Export a website as a template
 router.post('/export/website/:websiteId', authMiddleware, requireWebsiteAccess(), async (req, res) => {

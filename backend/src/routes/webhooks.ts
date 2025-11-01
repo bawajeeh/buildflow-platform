@@ -1,34 +1,46 @@
 import { Router } from 'express'
 import { getRedisClient } from '../services/redis'
 import { requireWebsiteAccess } from '../middleware/auth'
+import { logger } from '../utils/logger'
+import { asyncHandler, createError } from '../utils/errorHandler'
+import { validateParams, validateRequest } from '../middleware/validation'
+import { websiteIdParamsSchema, setWebhookSchema } from '../validations/webhooks'
 
 const router = Router()
 
 // Set webhook URL for website
-router.put('/websites/:websiteId/webhook', requireWebsiteAccess(), async (req, res) => {
-  try {
-    const { url } = req.body || {}
-    if (!url || typeof url !== 'string') return res.status(400).json({ error: 'url is required' })
-    const redis = getRedisClient()
-    if (!redis) return res.status(503).json({ error: 'Redis unavailable' })
-    await redis.set(`webhook:${req.params.websiteId}`, url)
-    res.json({ success: true })
-  } catch (e: any) {
-    res.status(500).json({ error: e?.message || 'Failed to set webhook' })
+router.put('/websites/:websiteId/webhook', requireWebsiteAccess(), validateParams(websiteIdParamsSchema), validateRequest(setWebhookSchema), asyncHandler(async (req, res) => {
+  const { websiteId } = req.params
+  const { url } = req.body
+  
+  const redis = getRedisClient()
+  if (!redis) {
+    throw createError('Redis unavailable', 503, 'REDIS_UNAVAILABLE')
   }
-})
+  
+  await redis.set(`webhook:${websiteId}`, url)
+  
+  logger.info('Webhook URL set', { websiteId, url })
+  
+  res.json({ success: true })
+}))
 
 // Get webhook URL
-router.get('/websites/:websiteId/webhook', requireWebsiteAccess(), async (req, res) => {
-  try {
-    const redis = getRedisClient()
-    if (!redis) return res.json({ url: null })
-    const url = await redis.get(`webhook:${req.params.websiteId}`)
-    res.json({ url })
-  } catch (e: any) {
-    res.status(500).json({ error: e?.message || 'Failed to get webhook' })
+router.get('/websites/:websiteId/webhook', requireWebsiteAccess(), validateParams(websiteIdParamsSchema), asyncHandler(async (req, res) => {
+  const { websiteId } = req.params
+  
+  const redis = getRedisClient()
+  if (!redis) {
+    logger.warn('Redis unavailable, returning null webhook URL', { websiteId })
+    return res.json({ success: true, data: { url: null } })
   }
-})
+  
+  const url = await redis.get(`webhook:${websiteId}`)
+  
+  logger.debug('Webhook URL fetched', { websiteId, hasUrl: !!url })
+  
+  res.json({ success: true, data: { url } })
+}))
 
 export async function emitWebhook(websiteId: string, event: string, payload: any) {
   try {
